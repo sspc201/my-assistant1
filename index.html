@@ -310,10 +310,9 @@ function renderRoutine() {
     </div>`;
   }).join("");
 }
-
 async function renderHeatmap() {
   const days=[];
-  for(let i=9;i>=0;i--){const d=new Date(new Date().getTime()+9*60*60*1000);d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];}
+  for(let i=9;i>=0;i--){const d=new Date(new Date().getTime()+9*60*60*1000);d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];days.push(ds);}
   const allData={};
   for(const ds of days){
     const rows=await queryDB(DB.routines,{property:"Date",date:{equals:ds}});
@@ -332,7 +331,6 @@ async function renderHeatmap() {
   html+="</div>";
   document.getElementById("heatmapContent").innerHTML=html;
 }
-
 async function renderWeeklyChart() {
   const labels=[],intakes=[],burns=[];
   for(let i=6;i>=0;i--){
