@@ -158,164 +158,171 @@
 </div>
 
 <script>
-const PROXY="https://notion-proxy.sspc201.workers.dev/?url=";
-const DB={
-  checklist:"351571b13f2e801bb1b4d7b36b4b64ca",
-  meals:"351571b13f2e8078a793d957bfb5b52c",
-  exercises:"351571b13f2e80be808cf4b10cb26044",
-  routines:"351571b13f2e8042bb85f81352b13a61"
+// ===================== CONFIG =====================
+const NOTION_PROXY = "https://notion-proxy.sspc201.workers.dev/?url=";
+const GEMINI_KEY = "AIzaSyAGQLnhKcEDEiuKcTb3AIpSuv-_9PRZNL8";
+const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_KEY;
+
+const DB = {
+  checklist: "351571b13f2e801bb1b4d7b36b4b64ca",
+  meals:     "351571b13f2e8078a793d957bfb5b52c",
+  exercises: "351571b13f2e80be808cf4b10cb26044",
+  routines:  "351571b13f2e8042bb85f81352b13a61"
 };
-const PRESETS={
-  "밸런스팩":{carb:13,protein:30,fat:7,kcal:291},
-  "쉐이크":{carb:10,protein:10,fat:3.7,kcal:100},
-  "닭가슴살샐러드":{carb:8,protein:48,fat:14,kcal:390},
-  "닭가슴살 샐러드":{carb:8,protein:48,fat:14,kcal:390},
+
+const PRESETS = {
+  "밸런스팩":        {carb:13,protein:30,fat:7,kcal:291},
+  "쉐이크":          {carb:10,protein:10,fat:3.7,kcal:100},
+  "닭가슴살샐러드":  {carb:8,protein:48,fat:14,kcal:390},
+  "닭가슴살 샐러드": {carb:8,protein:48,fat:14,kcal:390},
 };
-const EXERCISE_DB={
-  "달리기":11,"수영":10,"계단오르기":8,"자전거":7,"댄스":6,
-  "스쿼트":5,"걷기":4,"요가":3,"줄넘기":10,"등산":7,"헬스":5,
-};
-const ROUTINE_ITEMS=[
-  {key:"weight",label:"몸무게",type:"record"},
-  {key:"shower",label:"냉수샤워",type:"check"},
-  {key:"devotion",label:"말씀묵상",type:"check"},
-  {key:"breakfast",label:"아침 밸런스팩",type:"auto",desc:"밸런스팩 아침 섭취시 자동"},
-  {key:"squat",label:"중간운동",type:"auto",desc:"스쿼트 80개↑시 자동"},
-  {key:"onlyshake",label:"온리쉐이크",type:"auto",desc:"간식=쉐이크만"},
-  {key:"salad",label:"저녁샐러드",type:"auto",desc:"닭가슴살샐러드 저녁"},
-  {key:"exercise",label:"메인운동",type:"auto",desc:"계단/수영/댄스 시"},
+
+const ROUTINE_ITEMS = [
+  {key:"weight",   label:"몸무게",       type:"record"},
+  {key:"shower",   label:"냉수샤워",      type:"check"},
+  {key:"devotion", label:"말씀묵상",      type:"check"},
+  {key:"breakfast",label:"아침 밸런스팩", type:"auto", desc:"밸런스팩 아침 섭취시 자동"},
+  {key:"squat",    label:"중간운동",      type:"auto", desc:"스쿼트 80개↑시 자동"},
+  {key:"onlyshake",label:"온리쉐이크",    type:"auto", desc:"간식=쉐이크만"},
+  {key:"salad",    label:"저녁샐러드",    type:"auto", desc:"닭가슴살샐러드 저녁"},
+  {key:"exercise", label:"메인운동",      type:"auto", desc:"계단/수영/댄스 시"},
 ];
 
-const GEMINI_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-const GEMINI_SYSTEM=`당신은 개인 건강 비서입니다. 사용자 메시지를 분석해 JSON만 응답하세요. 다른 텍스트 절대 금지.
+const GEMINI_SYSTEM = `당신은 개인 건강 비서입니다. 사용자 메시지를 분석해 JSON만 응답하세요. 마크다운, 설명 텍스트 절대 금지. 순수 JSON만.
 
 지정 음식 (정확히 사용):
-- 밸런스팩: 탄13g 단30g 지7g 291kcal
-- 쉐이크: 탄10g 단10g 지3.7g 100kcal
-- 닭가슴살샐러드/닭가슴살 샐러드: 탄8g 단48g 지14g 390kcal
+- 밸런스팩: 탄13 단30 지7 291kcal
+- 쉐이크: 탄10 단10 지3.7 100kcal
+- 닭가슴살샐러드/닭가슴살 샐러드: 탄8 단48 지14 390kcal
 
 응답 형식:
-{
-  "type": "checklist_add"|"checklist_done"|"checklist_delete"|"meal_add"|"exercise_add"|"weight"|"routine"|"unknown",
-  "reply": "친절한 한국어 응답",
-  "data": {}
-}
+{"type":"타입","reply":"한국어응답","data":{}}
 
-타입별 data:
-- checklist_add: {"item":"항목명"}
-- checklist_done: {"item":"키워드"}
-- checklist_delete: {"item":"키워드"}
-- meal_add: {"name":"음식명","carb":숫자,"protein":숫자,"fat":숫자,"kcal":숫자,"mealType":"아침|점심|저녁|간식","auto_routines":[]}
-- exercise_add: {"name":"운동명","duration":분,"kcal_burned":추정,"count":횟수(없으면0),"auto_routines":[]}
-- weight: {"value":숫자}
-- routine: {"key":"shower"|"devotion"}
+타입:
+- checklist_add: data={"item":"항목명"}
+- checklist_done: data={"item":"키워드"}
+- checklist_delete: data={"item":"키워드"}
+- meal_add: data={"name":"음식명","carb":숫자,"protein":숫자,"fat":숫자,"kcal":숫자,"mealType":"아침|점심|저녁|간식","auto_routines":[]}
+- exercise_add: data={"name":"운동명","duration":분수자,"kcal_burned":숫자,"count":숫자,"auto_routines":[]}
+- weight: data={"value":숫자}
+- routine: data={"key":"shower|devotion"}
+- unknown: data={}
 
-auto_routines 규칙:
-- 밸런스팩+아침 → ["breakfast"]
-- 닭가슴살샐러드+저녁 → ["salad"]
-- 쉐이크+간식 → ["onlyshake"]
-- 계단오르기/수영/댄스 → ["exercise"]
-- 스쿼트 → count 기록 (80개↑ 자동 체크는 앱에서 처리)
+auto_routines:
+- 밸런스팩+아침→["breakfast"]
+- 닭가슴살샐러드+저녁→["salad"]
+- 쉐이크+간식→["onlyshake"]
+- 계단오르기/수영/댄스→["exercise"]`;
 
-음식 탄단지는 정확하게 추정해서 정수로 입력하세요.
-운동 소모 칼로리도 추정해서 입력하세요.`;
+let state = {
+  checklist:[], meals:[], exercises:[], routines:{},
+  todayStr: new Date().toISOString().split("T")[0],
+  squat_count: 0
+};
+let weeklyChartInst=null, trendChartInst=null;
 
-let state={checklist:[],meals:[],exercises:[],routines:{},todayStr:new Date().toISOString().split("T")[0],squat_count:0};
-let weeklyChartInst=null,trendChartInst=null;
-
-async function nFetch(path,method="GET",body=null){
-  const url=PROXY+encodeURIComponent("https://api.notion.com"+path);
-  const opts={method,headers:{"Notion-Version":"2022-06-28","Content-Type":"application/json"}};
-  if(body)opts.body=JSON.stringify(body);
-  const res=await fetch(url,opts);
+// ===== NOTION =====
+async function nFetch(path, method="GET", body=null) {
+  const url = NOTION_PROXY + encodeURIComponent("https://api.notion.com" + path);
+  const opts = {method, headers:{"Notion-Version":"2022-06-28","Content-Type":"application/json"}};
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
   return res.json();
 }
-async function queryDB(dbId,filter=null){const data=await nFetch("/v1/databases/"+dbId+"/query","POST",filter?{filter}:{});return data.results||[];}
-async function createPage(dbId,props){return nFetch("/v1/pages","POST",{parent:{database_id:dbId},properties:props});}
-async function updatePage(pageId,props){return nFetch("/v1/pages/"+pageId,"PATCH",{properties:props});}
+async function queryDB(dbId, filter=null) {
+  const data = await nFetch("/v1/databases/"+dbId+"/query","POST",filter?{filter}:{});
+  return data.results||[];
+}
+async function createPage(dbId, props) { return nFetch("/v1/pages","POST",{parent:{database_id:dbId},properties:props}); }
+async function updatePage(pageId, props) { return nFetch("/v1/pages/"+pageId,"PATCH",{properties:props}); }
 
-async function geminiParse(text){
-  const url=PROXY+encodeURIComponent(GEMINI_URL);
-  const res=await fetch(url,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      system_instruction:{parts:[{text:GEMINI_SYSTEM}]},
-      contents:[{parts:[{text}]}],
-      generationConfig:{temperature:0.1}
+// ===== GEMINI =====
+async function geminiParse(text) {
+  const res = await fetch(GEMINI_URL, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      system_instruction: {parts:[{text: GEMINI_SYSTEM}]},
+      contents: [{parts:[{text}]}],
+      generationConfig: {temperature:0.1, maxOutputTokens:500}
     })
   });
-  const data=await res.json();
-  const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||"{}";
-  return JSON.parse(raw.replace(/```json|```/g,"").trim());
+  const data = await res.json();
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+  const clean = raw.replace(/```json|```/g,"").trim();
+  return JSON.parse(clean);
 }
 
-async function loadAll(){
+// ===== LOAD =====
+async function loadAll() {
   showLoading(true);
-  try{await Promise.all([loadChecklist(),loadTodayMeals(),loadTodayExercises(),loadTodayRoutine()]);renderAll();renderWeeklyChart();}
-  catch(e){addMsg("bot","⚠️ 로딩 오류: "+e.message);}
+  try {
+    await Promise.all([loadChecklist(),loadTodayMeals(),loadTodayExercises(),loadTodayRoutine()]);
+    renderAll(); renderWeeklyChart();
+  } catch(e) { addMsg("bot","⚠️ 로딩 오류: "+e.message); }
   showLoading(false);
 }
 
-async function loadChecklist(){
-  const rows=await queryDB(DB.checklist);
-  state.checklist=rows.map(r=>({id:r.id,text:r.properties.Name?.title?.[0]?.plain_text||"",done:r.properties.Done?.checkbox||false})).filter(i=>i.text);
+async function loadChecklist() {
+  const rows = await queryDB(DB.checklist);
+  state.checklist = rows.map(r=>({id:r.id,text:r.properties.Name?.title?.[0]?.plain_text||"",done:r.properties.Done?.checkbox||false})).filter(i=>i.text);
 }
-async function loadTodayMeals(){
-  const rows=await queryDB(DB.meals,{property:"Date",date:{equals:state.todayStr}});
-  state.meals=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0,carb:r.properties.Carb?.number||0,protein:r.properties.Protein?.number||0,fat:r.properties.Fat?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||""}));
+async function loadTodayMeals() {
+  const rows = await queryDB(DB.meals,{property:"Date",date:{equals:state.todayStr}});
+  state.meals = rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0,carb:r.properties.Carb?.number||0,protein:r.properties.Protein?.number||0,fat:r.properties.Fat?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||""}));
 }
-async function loadTodayExercises(){
-  const rows=await queryDB(DB.exercises,{property:"Date",date:{equals:state.todayStr}});
-  state.exercises=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||"",count:r.properties.Count?.number||0}));
-  state.squat_count=state.exercises.filter(e=>e.name.includes("스쿼트")).reduce((s,e)=>s+(e.count||0),0);
+async function loadTodayExercises() {
+  const rows = await queryDB(DB.exercises,{property:"Date",date:{equals:state.todayStr}});
+  state.exercises = rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||"",count:r.properties.Count?.number||0}));
+  state.squat_count = state.exercises.filter(e=>e.name.includes("스쿼트")).reduce((s,e)=>s+(e.count||0),0);
 }
-async function loadTodayRoutine(){
-  const rows=await queryDB(DB.routines,{property:"Date",date:{equals:state.todayStr}});
-  state.routines={};
+async function loadTodayRoutine() {
+  const rows = await queryDB(DB.routines,{property:"Date",date:{equals:state.todayStr}});
+  state.routines = {};
   rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)state.routines[key]={id:r.id,done:r.properties.Done?.checkbox||false,value:r.properties.Value?.number||null};});
 }
 
+// ===== RENDER =====
 function renderAll(){renderChecklist();renderMeals();renderExercises();renderRoutine();}
 
-function renderChecklist(){
-  const pending=state.checklist.filter(i=>!i.done);
-  const done=state.checklist.filter(i=>i.done);
-  document.getElementById("pendingList").innerHTML=pending.length
-    ?pending.map(i=>`<div class="check-item"><div class="check-box" onclick="toggleCheck('${i.id}',true)"></div><span class="check-text">${i.text}</span></div>`).join("")
-    :'<div class="empty">할 일이 없어요 🎉</div>';
-  const dLabel=document.getElementById("doneLabel");
-  const dList=document.getElementById("doneList");
+function renderChecklist() {
+  const pending = state.checklist.filter(i=>!i.done);
+  const done = state.checklist.filter(i=>i.done);
+  document.getElementById("pendingList").innerHTML = pending.length
+    ? pending.map(i=>`<div class="check-item"><div class="check-box" onclick="toggleCheck('${i.id}',true)"></div><span class="check-text">${i.text}</span></div>`).join("")
+    : '<div class="empty">할 일이 없어요 🎉</div>';
+  const dLabel = document.getElementById("doneLabel");
+  const dList = document.getElementById("doneList");
   if(done.length){
     dLabel.style.display="block";
-    dList.innerHTML=done.map(i=>`<div class="check-item"><div class="check-box done" onclick="toggleCheck('${i.id}',false)"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div><span class="check-text done">${i.text}</span></div>`).join("");
-  }else{dLabel.style.display="none";dList.innerHTML="";}
+    dList.innerHTML = done.map(i=>`<div class="check-item"><div class="check-box done" onclick="toggleCheck('${i.id}',false)"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div><span class="check-text done">${i.text}</span></div>`).join("");
+  } else { dLabel.style.display="none"; dList.innerHTML=""; }
 }
 
-function renderMeals(){
-  document.getElementById("mealList").innerHTML=state.meals.length
-    ?state.meals.map(m=>`<div class="meal-item"><div><div class="meal-name">${m.name}</div><div class="meal-sub">${m.time} · 탄${m.carb}g 단${m.protein}g 지${m.fat}g</div></div><div style="font-weight:700">${m.kcal} kcal</div></div>`).join("")
-    :'<div class="empty">기록된 식사가 없어요</div>';
+function renderMeals() {
+  document.getElementById("mealList").innerHTML = state.meals.length
+    ? state.meals.map(m=>`<div class="meal-item"><div><div class="meal-name">${m.name}</div><div class="meal-sub">${m.time} · 탄${m.carb}g 단${m.protein}g 지${m.fat}g</div></div><div style="font-weight:700">${m.kcal} kcal</div></div>`).join("")
+    : '<div class="empty">기록된 식사가 없어요</div>';
   const tk=state.meals.reduce((s,m)=>s+m.kcal,0);
   const tb=state.exercises.reduce((s,e)=>s+e.kcal_burned,0);
   document.getElementById("totalKcal").textContent=tk;
   document.getElementById("totalBurned").textContent=tb;
-  const net=tk-tb;const netEl=document.getElementById("netKcal");
-  netEl.textContent=net;netEl.style.color=net>0?"#e07b3a":"#2d9a6b";
+  const net=tk-tb; const netEl=document.getElementById("netKcal");
+  netEl.textContent=net; netEl.style.color=net>0?"#e07b3a":"#2d9a6b";
   document.getElementById("totalCarb").textContent=state.meals.reduce((s,m)=>s+m.carb,0)+"g";
   document.getElementById("totalProtein").textContent=state.meals.reduce((s,m)=>s+m.protein,0)+"g";
   document.getElementById("totalFat").textContent=state.meals.reduce((s,m)=>s+m.fat,0)+"g";
 }
 
-function renderExercises(){
-  document.getElementById("exerciseList").innerHTML=state.exercises.length
-    ?state.exercises.map(e=>`<div class="meal-item"><div><div class="meal-name">${e.name}${e.count?` (${e.count}개)`:""}</div><div class="meal-sub">${e.time} · ${e.duration}분</div></div><div style="font-weight:700;color:#2d9a6b">-${e.kcal_burned} kcal</div></div>`).join("")
-    :'<div class="empty">기록된 운동이 없어요</div>';
+function renderExercises() {
+  document.getElementById("exerciseList").innerHTML = state.exercises.length
+    ? state.exercises.map(e=>`<div class="meal-item"><div><div class="meal-name">${e.name}${e.count?` (${e.count}개)`:""}</div><div class="meal-sub">${e.time} · ${e.duration}분</div></div><div style="font-weight:700;color:#2d9a6b">-${e.kcal_burned} kcal</div></div>`).join("")
+    : '<div class="empty">기록된 운동이 없어요</div>';
 }
 
-function renderRoutine(){
-  document.getElementById("routineList").innerHTML=ROUTINE_ITEMS.map(item=>{
-    const r=state.routines[item.key]||{};const done=r.done||false;
+function renderRoutine() {
+  document.getElementById("routineList").innerHTML = ROUTINE_ITEMS.map(item=>{
+    const r=state.routines[item.key]||{}; const done=r.done||false;
     const chk=`<div class="routine-check ${done?'done':''}">
       ${done?'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>':''}
     </div>`;
@@ -333,10 +340,11 @@ function renderRoutine(){
   }).join("");
 }
 
-async function renderWeeklyChart(){
+async function renderWeeklyChart() {
   const labels=[],intakes=[],burns=[];
   for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.toISOString().split("T")[0];
     labels.push(`${d.getMonth()+1}/${d.getDate()}`);
     const mR=await queryDB(DB.meals,{property:"Date",date:{equals:ds}});
     const eR=await queryDB(DB.exercises,{property:"Date",date:{equals:ds}});
@@ -348,17 +356,18 @@ async function renderWeeklyChart(){
   weeklyChartInst=new Chart(ctx,{type:"bar",data:{labels,datasets:[{label:"섭취",data:intakes,backgroundColor:"#3b7dd8",borderRadius:4},{label:"소모",data:burns,backgroundColor:"#2d9a6b",borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:"bottom",labels:{font:{size:11},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{display:false}}}});
 }
 
+// ===== ACTIONS =====
 async function toggleCheck(id,done){await updatePage(id,{Done:{checkbox:done}});await loadChecklist();renderChecklist();}
 
 async function toggleRoutine(key){
-  const r=state.routines[key];const newDone=!(r?.done);
+  const r=state.routines[key]; const newDone=!(r?.done);
   if(r?.id){await updatePage(r.id,{Done:{checkbox:newDone}});state.routines[key].done=newDone;}
   else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:key}}]},Key:{rich_text:[{text:{content:key}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true}});state.routines[key]={id:page.id,done:true};}
   renderRoutine();
 }
 
 async function saveWeight(val){
-  const v=parseFloat(val);if(isNaN(v))return;
+  const v=parseFloat(val); if(isNaN(v))return;
   const r=state.routines["weight"];
   if(r?.id){await updatePage(r.id,{Done:{checkbox:true},Value:{number:v}});state.routines["weight"]={...r,done:true,value:v};}
   else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:"weight"}}]},Key:{rich_text:[{text:{content:"weight"}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true},Value:{number:v}});state.routines["weight"]={id:page.id,done:true,value:v};}
@@ -366,7 +375,7 @@ async function saveWeight(val){
 }
 
 async function autoCheckRoutine(key){
-  const r=state.routines[key];if(r?.done)return;
+  const r=state.routines[key]; if(r?.done)return;
   if(r?.id){await updatePage(r.id,{Done:{checkbox:true}});state.routines[key].done=true;}
   else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:key}}]},Key:{rich_text:[{text:{content:key}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true}});state.routines[key]={id:page.id,done:true};}
 }
@@ -376,7 +385,7 @@ async function openTrend(key,label){
   document.getElementById("modalOverlay").classList.add("open");
   const labels=[],vals=[];
   for(let i=27;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
+    const d=new Date(); d.setDate(d.getDate()-i); const ds=d.toISOString().split("T")[0];
     labels.push(`${d.getMonth()+1}/${d.getDate()}`);
     const rows=await queryDB(DB.routines,{and:[{property:"Key",rich_text:{equals:key}},{property:"Date",date:{equals:ds}}]});
     vals.push(key==="weight"?(rows[0]?.properties?.Value?.number||null):(rows[0]?.properties?.Done?.checkbox?1:0));
@@ -389,7 +398,7 @@ async function openTrend(key,label){
 function closeModal(e){if(e.target===document.getElementById("modalOverlay"))document.getElementById("modalOverlay").classList.remove("open");}
 
 async function loadHistory(){
-  const d=document.getElementById("historyDate").value;if(!d)return;
+  const d=document.getElementById("historyDate").value; if(!d)return;
   showLoading(true);
   const mRows=await queryDB(DB.meals,{property:"Date",date:{equals:d}});
   const eRows=await queryDB(DB.exercises,{property:"Date",date:{equals:d}});
@@ -397,7 +406,7 @@ async function loadHistory(){
   showLoading(false);
   const meals=mRows.map(r=>({name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0}));
   const exs=eRows.map(r=>({name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0}));
-  const tk=meals.reduce((s,m)=>s+m.kcal,0);const tb=exs.reduce((s,e)=>s+e.kcal_burned,0);
+  const tk=meals.reduce((s,m)=>s+m.kcal,0); const tb=exs.reduce((s,e)=>s+e.kcal_burned,0);
   document.getElementById("historyCard").innerHTML=`
     <div class="card-label">${d} 기록</div>
     <div class="stat-row">
@@ -410,49 +419,48 @@ async function loadHistory(){
     ${!meals.length&&!exs.length?`<div class="empty">이 날 기록이 없어요</div>`:""}`;
 }
 
+// ===== SEND =====
 async function sendMessage(){
   const input=document.getElementById("chatInput");
-  const text=input.value.trim();if(!text)return;
-  input.value="";
-  addMsg("user",text);
+  const text=input.value.trim(); if(!text)return;
+  input.value=""; addMsg("user",text);
   document.getElementById("sendBtn").disabled=true;
   document.getElementById("typingEl").style.display="block";
   scrollBottom();
 
   let parsed;
-  try{parsed=await geminiParse(text);}
-  catch(e){parsed={type:"unknown",reply:"AI 분석 오류: "+e.message,data:{}};}
+  try { parsed=await geminiParse(text); }
+  catch(e) { parsed={type:"unknown",reply:"AI 오류: "+e.message,data:{}}; }
 
   document.getElementById("typingEl").style.display="none";
-
   const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
   showLoading(true);
-  try{
+
+  try {
     const d=parsed.data||{};
     if(parsed.type==="checklist_add"&&d.item){
       const page=await createPage(DB.checklist,{Name:{title:[{text:{content:d.item}}]},Done:{checkbox:false}});
-      state.checklist.push({id:page.id,text:d.item,done:false});renderChecklist();
-    }else if(parsed.type==="checklist_done"&&d.item){
+      state.checklist.push({id:page.id,text:d.item,done:false}); renderChecklist();
+    } else if(parsed.type==="checklist_done"&&d.item){
       const item=state.checklist.find(i=>!i.done&&i.text.includes(d.item));
-      if(item)await toggleCheck(item.id,true);else parsed.reply=`"${d.item}" 항목을 찾지 못했어요.`;
-    }else if(parsed.type==="checklist_delete"&&d.item){
+      if(item) await toggleCheck(item.id,true); else parsed.reply=`"${d.item}" 항목을 찾지 못했어요.`;
+    } else if(parsed.type==="checklist_delete"&&d.item){
       const item=state.checklist.find(i=>i.text.includes(d.item));
       if(item){await updatePage(item.id,{Done:{checkbox:false}});await loadChecklist();renderChecklist();}
       else parsed.reply=`"${d.item}" 항목을 찾지 못했어요.`;
-    }else if(parsed.type==="meal_add"){
+    } else if(parsed.type==="meal_add"){
       await createPage(DB.meals,{
         Name:{title:[{text:{content:d.name||"음식"}}]},
         Date:{date:{start:state.todayStr}},
         Time:{rich_text:[{text:{content:now}}]},
         MealType:{rich_text:[{text:{content:d.mealType||"식사"}}]},
-        Kcal:{number:d.kcal||0},Carb:{number:d.carb||0},
-        Protein:{number:d.protein||0},Fat:{number:d.fat||0},
+        Kcal:{number:d.kcal||0}, Carb:{number:d.carb||0},
+        Protein:{number:d.protein||0}, Fat:{number:d.fat||0},
       });
-      await loadTodayMeals();renderMeals();
-      if(d.auto_routines)for(const k of d.auto_routines)await autoCheckRoutine(k);
+      await loadTodayMeals(); renderMeals();
+      if(d.auto_routines) for(const k of d.auto_routines) await autoCheckRoutine(k);
       renderRoutine();
-    }else if(parsed.type==="exercise_add"){
-      // 스쿼트 누적 체크
+    } else if(parsed.type==="exercise_add"){
       if(d.name?.includes("스쿼트")&&d.count){
         state.squat_count+=d.count;
         if(state.squat_count>=80&&!d.auto_routines?.includes("squat"))
@@ -466,23 +474,24 @@ async function sendMessage(){
         KcalBurned:{number:d.kcal_burned||0},
         Count:{number:d.count||0},
       });
-      await loadTodayExercises();renderExercises();renderMeals();
-      if(d.auto_routines)for(const k of d.auto_routines)await autoCheckRoutine(k);
+      await loadTodayExercises(); renderExercises(); renderMeals();
+      if(d.auto_routines) for(const k of d.auto_routines) await autoCheckRoutine(k);
       renderRoutine();
-    }else if(parsed.type==="weight"&&d.value){
+    } else if(parsed.type==="weight"&&d.value){
       await saveWeight(d.value);
-    }else if(parsed.type==="routine"&&d.key){
+    } else if(parsed.type==="routine"&&d.key){
       await toggleRoutine(d.key);
     }
-  }catch(e){parsed.reply="오류: "+e.message;}
+  } catch(e){ parsed.reply="오류: "+e.message; }
+
   showLoading(false);
   document.getElementById("sendBtn").disabled=false;
-  addMsg("bot",parsed.reply||"처리했습니다!");
+  addMsg("bot", parsed.reply||"처리했습니다!");
   scrollBottom();
 }
 
 function addMsg(role,text){
-  const el=document.createElement("div");el.className="msg "+role;
+  const el=document.createElement("div"); el.className="msg "+role;
   el.innerHTML=`<div class="msg-bubble">${text}</div>`;
   document.getElementById("messages").appendChild(el);
   scrollBottom();
@@ -499,7 +508,7 @@ window.addEventListener("DOMContentLoaded",()=>{
   const now=new Date();
   document.getElementById("headerDate").textContent=now.toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric",weekday:"short"});
   document.getElementById("historyDate").value=state.todayStr;
-  addMsg("bot","안녕하세요! 😊\n\n이제 어떤 음식이든 말씀해주시면 탄단지를 분석해드려요!\n\n예: \"삼겹살 200g 먹었어\", \"스타벅스 라떼 마셨어\"");
+  addMsg("bot","안녕하세요! 😊\n\n어떤 음식이든 말씀해주시면 탄단지를 분석해드려요!\n\n예: \"삼겹살 200g 먹었어\", \"스타벅스 라떼 마셨어\"");
   loadAll();
 });
 </script>
