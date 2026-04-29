@@ -313,7 +313,7 @@ function renderRoutine() {
 
 async function renderHeatmap() {
   const days=[];
-  for(let i=9;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().split("T")[0]);}
+  for(let i=9;i>=0;i--){const d=new Date(new Date().getTime()+9*60*60*1000);d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];}
   const allData={};
   for(const ds of days){
     const rows=await queryDB(DB.routines,{property:"Date",date:{equals:ds}});
@@ -336,7 +336,7 @@ async function renderHeatmap() {
 async function renderWeeklyChart() {
   const labels=[],intakes=[],burns=[];
   for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
+    const d=new Date(new Date().getTime()+9*60*60*1000);d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
     labels.push(`${d.getMonth()+1}/${d.getDate()}`);
     const mR=await queryDB(DB.meals,{property:"Date",date:{equals:ds}});
     const eR=await queryDB(DB.exercises,{property:"Date",date:{equals:ds}});
