@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="나의비서">
 <meta name="theme-color" content="#f7f6f3">
 <title>나의비서</title>
@@ -12,302 +11,67 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  :root {
-    --bg: #f7f6f3;
-    --card: #ffffff;
-    --text: #1a1a1a;
-    --sub: #888;
-    --border: #ebebeb;
-    --accent: #1a1a1a;
-    --green: #2d9a6b;
-    --blue: #3b7dd8;
-    --orange: #e07b3a;
-    --red: #d94f4f;
-    --purple: #7c5cbf;
-  }
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
-    min-height: 100vh;
-    max-width: 480px;
-    margin: 0 auto;
-    color: var(--text);
-    overflow-x: hidden;
-  }
-
-  /* HEADER */
-  .header {
-    padding: 20px 20px 0;
-    background: var(--bg);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-date { font-size: 12px; color: var(--sub); margin-bottom: 2px; }
-  .header-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-
-  /* TABS */
-  .tabs {
-    display: flex;
-    padding: 14px 20px 0;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    background: var(--bg);
-    position: sticky;
-    top: 56px;
-    z-index: 100;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    padding: 7px 14px;
-    border-radius: 20px;
-    border: none;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    background: var(--border);
-    color: var(--sub);
-    transition: all 0.18s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .tab.active { background: var(--accent); color: #fff; }
-
-  /* CONTENT */
-  .content {
-    padding: 16px 20px 120px;
-    display: none;
-  }
-  .content.active { display: block; }
-
-  /* CARD */
-  .card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 18px;
-    margin-bottom: 14px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  }
-  .card-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--sub);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-  }
-
-  /* CHAT */
-  .messages { display: flex; flex-direction: column; gap: 10px; }
-  .msg { display: flex; }
-  .msg.user { justify-content: flex-end; }
-  .msg-bubble {
-    max-width: 78%;
-    padding: 11px 14px;
-    border-radius: 18px;
-    font-size: 14px;
-    line-height: 1.55;
-    white-space: pre-wrap;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-  .msg.user .msg-bubble { background: var(--accent); color: #fff; border-radius: 18px 18px 4px 18px; }
-  .msg.bot .msg-bubble { background: var(--card); color: var(--text); border-radius: 18px 18px 18px 4px; }
-  .typing { display: flex; gap: 4px; padding: 12px 14px; background: var(--card); border-radius: 18px 18px 18px 4px; width: fit-content; }
-  .typing span { width: 7px; height: 7px; border-radius: 50%; background: #ccc; animation: bounce 1s infinite; }
-  .typing span:nth-child(2) { animation-delay: 0.15s; }
-  .typing span:nth-child(3) { animation-delay: 0.3s; }
-  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
-
-  /* INPUT */
-  .input-bar {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 480px;
-    padding: 12px 16px 28px;
-    background: rgba(247,246,243,0.95);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
-  }
-  .input-bar input {
-    flex: 1;
-    padding: 12px 16px;
-    border-radius: 24px;
-    border: 1.5px solid var(--border);
-    font-size: 14px;
-    color: var(--text);
-    background: #fff;
-    outline: none;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .input-bar input:focus { border-color: #ccc; }
-  .send-btn {
-    width: 46px; height: 46px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: opacity 0.2s;
-  }
-  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* CHECKLIST */
-  .check-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 0;
-    border-bottom: 1px solid #f5f5f5;
-  }
-  .check-item:last-child { border-bottom: none; }
-  .check-box {
-    width: 20px; height: 20px;
-    border-radius: 6px;
-    border: 1.5px solid #ddd;
-    flex-shrink: 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-  .check-box.done { background: var(--accent); border-color: var(--accent); }
-  .check-text { font-size: 14px; color: var(--text); flex: 1; }
-  .check-text.done { text-decoration: line-through; color: var(--sub); }
-  .check-section-label { font-size: 11px; color: var(--sub); font-weight: 600; margin: 12px 0 6px; }
-
-  /* STATS */
-  .stat-row { display: flex; gap: 10px; margin-bottom: 10px; }
-  .stat-box {
-    flex: 1;
-    background: var(--bg);
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-  }
-  .stat-val { font-size: 20px; font-weight: 700; }
-  .stat-label { font-size: 11px; color: var(--sub); margin-top: 2px; }
-
-  /* MEAL ITEM */
-  .meal-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #f5f5f5;
-    font-size: 13px;
-  }
-  .meal-item:last-child { border-bottom: none; }
-  .meal-name { font-weight: 600; color: var(--text); }
-  .meal-sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
-  .meal-kcal { font-weight: 700; color: var(--text); }
-
-  /* ROUTINE */
-  .routine-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #f5f5f5;
-    cursor: pointer;
-  }
-  .routine-item:last-child { border-bottom: none; }
-  .routine-left { display: flex; align-items: center; gap: 10px; }
-  .routine-check {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .routine-check.done { background: var(--green); border-color: var(--green); }
-  .routine-name { font-size: 14px; font-weight: 500; }
-  .routine-weight { font-size: 14px; font-weight: 700; color: var(--blue); }
-
-  /* TREND MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 200;
-    align-items: flex-end;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--card);
-    border-radius: 24px 24px 0 0;
-    padding: 24px 20px 40px;
-    width: 100%;
-    max-width: 480px;
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
-  .modal-close {
-    float: right;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--sub);
-  }
-
-  /* EMPTY */
-  .empty { text-align: center; padding: 20px 0; font-size: 13px; color: #ccc; }
-
-  /* HISTORY */
-  .date-input {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border);
-    font-size: 14px;
-    color: var(--text);
-    background: var(--bg);
-    outline: none;
-    font-family: 'Noto Sans KR', sans-serif;
-    margin-bottom: 14px;
-  }
-
-  /* LOADING */
-  .loading-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(247,246,243,0.8);
-    z-index: 300;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: var(--sub);
-  }
-  .loading-overlay.open { display: flex; }
-
-  .mini-checklist { background: var(--card); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
-  .mini-cl-label { font-size: 11px; font-weight: 700; color: var(--sub); margin-bottom: 8px; }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--bg:#f7f6f3;--card:#fff;--text:#1a1a1a;--sub:#888;--border:#ebebeb;--accent:#1a1a1a;--green:#2d9a6b;--blue:#3b7dd8;--orange:#e07b3a;--purple:#7c5cbf}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;max-width:480px;margin:0 auto;color:var(--text);overflow-x:hidden}
+  .header{padding:20px 20px 0;background:var(--bg);position:sticky;top:0;z-index:100}
+  .header-date{font-size:12px;color:var(--sub);margin-bottom:2px}
+  .header-title{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+  .tabs{display:flex;padding:14px 20px 8px;gap:8px;overflow-x:auto;scrollbar-width:none;background:var(--bg);position:sticky;top:56px;z-index:100}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:7px 14px;border-radius:20px;border:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--border);color:var(--sub);transition:all 0.18s;font-family:'Noto Sans KR',sans-serif}
+  .tab.active{background:var(--accent);color:#fff}
+  .content{padding:16px 20px 120px;display:none}
+  .content.active{display:block}
+  .card{background:var(--card);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+  .card-label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+  .messages{display:flex;flex-direction:column;gap:10px}
+  .msg{display:flex}
+  .msg.user{justify-content:flex-end}
+  .msg-bubble{max-width:78%;padding:11px 14px;border-radius:18px;font-size:14px;line-height:1.55;white-space:pre-wrap;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+  .msg.user .msg-bubble{background:var(--accent);color:#fff;border-radius:18px 18px 4px 18px}
+  .msg.bot .msg-bubble{background:var(--card);color:var(--text);border-radius:18px 18px 18px 4px}
+  .input-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 16px 28px;background:rgba(247,246,243,0.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;gap:8px}
+  .input-bar input{flex:1;padding:12px 16px;border-radius:24px;border:1.5px solid var(--border);font-size:14px;color:var(--text);background:#fff;outline:none;font-family:'Noto Sans KR',sans-serif}
+  .send-btn{width:46px;height:46px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5}
+  .check-item:last-child{border-bottom:none}
+  .check-box{width:20px;height:20px;border-radius:6px;border:1.5px solid #ddd;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+  .check-box.done{background:var(--accent);border-color:var(--accent)}
+  .check-text{font-size:14px;color:var(--text);flex:1}
+  .check-text.done{text-decoration:line-through;color:var(--sub)}
+  .section-label{font-size:11px;color:var(--sub);font-weight:600;margin:12px 0 6px}
+  .stat-row{display:flex;gap:10px;margin-bottom:10px}
+  .stat-box{flex:1;background:var(--bg);border-radius:12px;padding:12px;text-align:center}
+  .stat-val{font-size:20px;font-weight:700}
+  .stat-label{font-size:11px;color:var(--sub);margin-top:2px}
+  .meal-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+  .meal-item:last-child{border-bottom:none}
+  .meal-name{font-weight:600}
+  .meal-sub{font-size:11px;color:var(--sub);margin-top:2px}
+  .routine-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer}
+  .routine-item:last-child{border-bottom:none}
+  .routine-left{display:flex;align-items:center;gap:10px}
+  .routine-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+  .routine-check.done{background:var(--green);border-color:var(--green)}
+  .routine-name{font-size:14px;font-weight:500}
+  .routine-sub{font-size:11px;color:var(--sub)}
+  .empty{text-align:center;padding:20px 0;font-size:13px;color:#ccc}
+  .date-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;color:var(--text);background:var(--bg);outline:none;font-family:'Noto Sans KR',sans-serif;margin-bottom:14px}
+  .loading{display:none;position:fixed;inset:0;background:rgba(247,246,243,0.8);z-index:300;align-items:center;justify-content:center;font-size:14px;color:var(--sub)}
+  .loading.open{display:flex}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:70vh;overflow-y:auto}
+  .modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
+  .modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--sub)}
+  .help{background:#f0f0ef;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#555;line-height:1.9}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="loading-overlay" id="loadingOverlay">잠깐만요...</div>
+<div class="loading" id="loading">잠깐만요...</div>
 
-<!-- TREND MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('open')">✕</button>
@@ -316,13 +80,11 @@
   </div>
 </div>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-date" id="headerDate"></div>
   <div class="header-title">나의비서</div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
   <button class="tab active" onclick="switchTab(0)">💬 채팅</button>
   <button class="tab" onclick="switchTab(1)">✅ 체크리스트</button>
@@ -331,29 +93,28 @@
   <button class="tab" onclick="switchTab(4)">📊 기록</button>
 </div>
 
-<!-- TAB 0: 채팅 -->
 <div class="content active" id="tab0">
-  <div id="miniChecklist" class="mini-checklist" style="display:none">
-    <div class="mini-cl-label">오늘 할 일</div>
-    <div id="miniChecklistItems"></div>
+  <div class="help">
+    💡 이렇게 말해보세요<br>
+    • "다이소 건전지 사기 <b>추가</b>"<br>
+    • "건전지 <b>완료</b>" / "건전지 <b>삭제</b>"<br>
+    • "아침에 밸런스팩 <b>먹었어</b>"<br>
+    • "저녁에 닭가슴살샐러드 <b>먹었어</b>"<br>
+    • "30분 수영 <b>했어</b>" / "스쿼트 100개 <b>했어</b>"<br>
+    • "몸무게 68.5 <b>기록</b>" / "냉수샤워 <b>완료</b>"
   </div>
   <div class="messages" id="messages"></div>
-  <div id="typingIndicator" style="display:none">
-    <div class="typing"><span></span><span></span><span></span></div>
-  </div>
 </div>
 
-<!-- TAB 1: 체크리스트 -->
 <div class="content" id="tab1">
   <div class="card">
     <div class="card-label">할 일</div>
     <div id="pendingList"><div class="empty">항목이 없어요</div></div>
-    <div class="check-section-label" id="doneLabel" style="display:none">완료됨</div>
+    <div class="section-label" id="doneLabel" style="display:none">완료됨</div>
     <div id="doneList"></div>
   </div>
 </div>
 
-<!-- TAB 2: 식단·운동 -->
 <div class="content" id="tab2">
   <div class="card">
     <div class="card-label">오늘 칼로리</div>
@@ -368,445 +129,222 @@
       <div class="stat-box"><div class="stat-val" id="totalFat" style="color:#e07b3a">0g</div><div class="stat-label">지방</div></div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-label">오늘 식사</div>
-    <div id="mealList"><div class="empty">기록된 식사가 없어요</div></div>
-  </div>
-  <div class="card">
-    <div class="card-label">오늘 운동</div>
-    <div id="exerciseList"><div class="empty">기록된 운동이 없어요</div></div>
-  </div>
-  <div class="card">
-    <div class="card-label">주간 칼로리 트렌드</div>
-    <canvas id="weeklyChart" height="160"></canvas>
-  </div>
+  <div class="card"><div class="card-label">오늘 식사</div><div id="mealList"><div class="empty">기록된 식사가 없어요</div></div></div>
+  <div class="card"><div class="card-label">오늘 운동</div><div id="exerciseList"><div class="empty">기록된 운동이 없어요</div></div></div>
+  <div class="card"><div class="card-label">주간 칼로리</div><canvas id="weeklyChart" height="160"></canvas></div>
 </div>
 
-<!-- TAB 3: 루틴 -->
 <div class="content" id="tab3">
-  <div class="card">
-    <div class="card-label">오늘 루틴</div>
-    <div id="routineList"></div>
-  </div>
+  <div class="card"><div class="card-label">오늘 루틴</div><div id="routineList"></div></div>
 </div>
 
-<!-- TAB 4: 기록 보기 -->
 <div class="content" id="tab4">
-  <div class="card">
-    <div class="card-label">날짜 선택</div>
-    <input type="date" class="date-input" id="historyDate" onchange="loadHistory()">
-  </div>
-  <div class="card" id="historyCard">
-    <div class="card-label">기록</div>
-    <div class="empty">날짜를 선택해주세요</div>
-  </div>
+  <div class="card"><div class="card-label">날짜 선택</div><input type="date" class="date-input" id="historyDate" onchange="loadHistory()"></div>
+  <div id="historyCard" class="card"><div class="empty">날짜를 선택해주세요</div></div>
 </div>
 
-<!-- INPUT BAR -->
 <div class="input-bar" id="inputBar">
   <input type="text" id="chatInput" placeholder="무엇이든 말씀해주세요..." onkeydown="if(event.key==='Enter')sendMessage()">
-  <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"/>
-      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+  <button class="send-btn" onclick="sendMessage()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
 </div>
 
 <script>
-// ===================== CONFIG =====================
-const NOTION_TOKEN = "";
-const DB = {
-  checklist: "351571b13f2e801bb1b4d7b36b4b64ca",
-  meals:     "351571b13f2e8078a793d957bfb5b52c",
-  exercises: "351571b13f2e80be808cf4b10cb26044",
-  routines:  "351571b13f2e8042bb85f81352b13a61"
+const PROXY="https://notion-proxy.sspc201.workers.dev/?url=";
+const DB={
+  checklist:"351571b13f2e801bb1b4d7b36b4b64ca",
+  meals:"351571b13f2e8078a793d957bfb5b52c",
+  exercises:"351571b13f2e80be808cf4b10cb26044",
+  routines:"351571b13f2e8042bb85f81352b13a61"
 };
-const PROXY = "https://notion-proxy.sspc201.workers.dev/?url=";
-
-// 지정 음식
-const PRESET_FOODS = {
-  "밸런스팩": { carb:13, protein:30, fat:7, kcal:291 },
-  "쉐이크":   { carb:10, protein:10, fat:3.7, kcal:100 },
-  "닭가슴살샐러드": { carb:8, protein:48, fat:14, kcal:390 },
-  "닭가슴살 샐러드": { carb:8, protein:48, fat:14, kcal:390 },
+const PRESETS={
+  "밸런스팩":{carb:13,protein:30,fat:7,kcal:291},
+  "쉐이크":{carb:10,protein:10,fat:3.7,kcal:100},
+  "닭가슴살샐러드":{carb:8,protein:48,fat:14,kcal:390},
+  "닭가슴살 샐러드":{carb:8,protein:48,fat:14,kcal:390},
 };
-
-const ROUTINE_ITEMS = [
-  { key:"weight",    label:"몸무게",       type:"record", unit:"kg" },
-  { key:"shower",    label:"냉수샤워",      type:"check" },
-  { key:"devotion",  label:"말씀묵상",      type:"check" },
-  { key:"breakfast", label:"아침 밸런스팩", type:"auto" },
-  { key:"squat",     label:"중간운동",      type:"auto", desc:"스쿼트 80개↑" },
-  { key:"onlyshake", label:"온리쉐이크",    type:"auto", desc:"간식=쉐이크만" },
-  { key:"salad",     label:"저녁샐러드",    type:"auto" },
-  { key:"exercise",  label:"메인운동",      type:"auto", desc:"계단/수영/댄스" },
+const FOOD_DB={
+  "라면":{carb:70,protein:10,fat:14,kcal:450},"김밥":{carb:50,protein:8,fat:6,kcal:290},
+  "비빔밥":{carb:65,protein:15,fat:8,kcal:400},"삼겹살":{carb:0,protein:25,fat:35,kcal:415},
+  "치킨":{carb:15,protein:30,fat:20,kcal:360},"피자":{carb:35,protein:12,fat:14,kcal:320},
+  "햄버거":{carb:40,protein:18,fat:20,kcal:410},"닭가슴살":{carb:0,protein:31,fat:3.6,kcal:165},
+  "고구마":{carb:20,protein:1,fat:0,kcal:86},"바나나":{carb:23,protein:1,fat:0,kcal:89},
+  "계란":{carb:1,protein:6,fat:5,kcal:68},"두부":{carb:2,protein:8,fat:4,kcal:76},
+  "현미밥":{carb:40,protein:3,fat:1,kcal:185},"흰쌀밥":{carb:45,protein:3,fat:0,kcal:200},
+};
+const EXERCISE_DB={
+  "달리기":11,"수영":10,"계단오르기":8,"자전거":7,"댄스":6,
+  "스쿼트":5,"걷기":4,"요가":3,"줄넘기":10,"등산":7,"헬스":5,
+};
+const ROUTINE_ITEMS=[
+  {key:"weight",label:"몸무게",type:"record"},
+  {key:"shower",label:"냉수샤워",type:"check"},
+  {key:"devotion",label:"말씀묵상",type:"check"},
+  {key:"breakfast",label:"아침 밸런스팩",type:"auto",desc:"밸런스팩 아침 섭취시 자동"},
+  {key:"squat",label:"중간운동",type:"auto",desc:"스쿼트 80개↑시 자동"},
+  {key:"onlyshake",label:"온리쉐이크",type:"auto",desc:"간식=쉐이크만"},
+  {key:"salad",label:"저녁샐러드",type:"auto",desc:"닭가슴살샐러드 저녁"},
+  {key:"exercise",label:"메인운동",type:"auto",desc:"계단/수영/댄스 시"},
 ];
 
-// ===================== STATE =====================
-let state = {
-  checklist: [],
-  meals: [],
-  exercises: [],
-  routines: {},
-  todayStr: new Date().toISOString().split("T")[0]
-};
+let state={checklist:[],meals:[],exercises:[],routines:{},todayStr:new Date().toISOString().split("T")[0],squat_count:0};
+let weeklyChartInst=null,trendChartInst=null;
 
-let weeklyChart = null;
-let trendChartInstance = null;
-let currentTab = 0;
-
-// ===================== NOTION API =====================
-async function notionFetch(path, method="GET", body=null) {
-  const url = PROXY + encodeURIComponent("https://api.notion.com" + path);
-  const opts = {
-    method,
-    headers: {
-      "Authorization": "Bearer " + NOTION_TOKEN,
-      "Notion-Version": "2022-06-28",
-      "Content-Type": "application/json"
-    }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
+async function nFetch(path,method="GET",body=null){
+  const url=PROXY+encodeURIComponent("https://api.notion.com"+path);
+  const opts={method,headers:{"Notion-Version":"2022-06-28","Content-Type":"application/json"}};
+  if(body)opts.body=JSON.stringify(body);
+  const res=await fetch(url,opts);
   return res.json();
 }
+async function queryDB(dbId,filter=null){const data=await nFetch("/v1/databases/"+dbId+"/query","POST",filter?{filter}:{});return data.results||[];}
+async function createPage(dbId,props){return nFetch("/v1/pages","POST",{parent:{database_id:dbId},properties:props});}
+async function updatePage(pageId,props){return nFetch("/v1/pages/"+pageId,"PATCH",{properties:props});}
 
-async function queryDB(dbId, filter=null) {
-  const body = filter ? { filter } : {};
-  const data = await notionFetch("/v1/databases/" + dbId + "/query", "POST", body);
-  return data.results || [];
-}
-
-async function createPage(dbId, props) {
-  return notionFetch("/v1/pages", "POST", { parent: { database_id: dbId }, properties: props });
-}
-
-async function updatePage(pageId, props) {
-  return notionFetch("/v1/pages/" + pageId, "PATCH", { properties: props });
-}
-
-// ===================== LOAD DATA =====================
-async function loadAll() {
+async function loadAll(){
   showLoading(true);
-  try {
-    await Promise.all([loadChecklist(), loadTodayMeals(), loadTodayExercises(), loadTodayRoutine()]);
-    renderAll();
-  } catch(e) {
-    console.error(e);
-    addMessage("bot", "데이터 로딩 중 오류가 발생했습니다. 노션 토큰을 확인해주세요.");
-  }
+  try{await Promise.all([loadChecklist(),loadTodayMeals(),loadTodayExercises(),loadTodayRoutine()]);renderAll();renderWeeklyChart();}
+  catch(e){addMsg("bot","⚠️ 로딩 오류: "+e.message);}
   showLoading(false);
 }
 
-async function loadChecklist() {
-  const rows = await queryDB(DB.checklist);
-  state.checklist = rows.map(r => ({
-    id: r.id,
-    text: r.properties.Name?.title?.[0]?.plain_text || "",
-    done: r.properties.Done?.checkbox || false,
-  })).filter(i => i.text);
+async function loadChecklist(){
+  const rows=await queryDB(DB.checklist);
+  state.checklist=rows.map(r=>({id:r.id,text:r.properties.Name?.title?.[0]?.plain_text||"",done:r.properties.Done?.checkbox||false})).filter(i=>i.text);
+}
+async function loadTodayMeals(){
+  const rows=await queryDB(DB.meals,{property:"Date",date:{equals:state.todayStr}});
+  state.meals=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0,carb:r.properties.Carb?.number||0,protein:r.properties.Protein?.number||0,fat:r.properties.Fat?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||""}));
+}
+async function loadTodayExercises(){
+  const rows=await queryDB(DB.exercises,{property:"Date",date:{equals:state.todayStr}});
+  state.exercises=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||"",count:r.properties.Count?.number||0}));
+  state.squat_count=state.exercises.filter(e=>e.name.includes("스쿼트")).reduce((s,e)=>s+(e.count||0),0);
+}
+async function loadTodayRoutine(){
+  const rows=await queryDB(DB.routines,{property:"Date",date:{equals:state.todayStr}});
+  state.routines={};
+  rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)state.routines[key]={id:r.id,done:r.properties.Done?.checkbox||false,value:r.properties.Value?.number||null};});
 }
 
-async function loadTodayMeals() {
-  const rows = await queryDB(DB.meals, {
-    property: "Date", date: { equals: state.todayStr }
-  });
-  state.meals = rows.map(r => ({
-    id: r.id,
-    name: r.properties.Name?.title?.[0]?.plain_text || "",
-    kcal: r.properties.Kcal?.number || 0,
-    carb: r.properties.Carb?.number || 0,
-    protein: r.properties.Protein?.number || 0,
-    fat: r.properties.Fat?.number || 0,
-    time: r.properties.Time?.rich_text?.[0]?.plain_text || "",
-    date: r.properties.Date?.date?.start || state.todayStr,
-  }));
+function renderAll(){renderChecklist();renderMeals();renderExercises();renderRoutine();}
+
+function renderChecklist(){
+  const pending=state.checklist.filter(i=>!i.done);
+  const done=state.checklist.filter(i=>i.done);
+  document.getElementById("pendingList").innerHTML=pending.length
+    ?pending.map(i=>`<div class="check-item"><div class="check-box" onclick="toggleCheck('${i.id}',true)"></div><span class="check-text">${i.text}</span></div>`).join("")
+    :'<div class="empty">할 일이 없어요 🎉</div>';
+  const dLabel=document.getElementById("doneLabel");
+  const dList=document.getElementById("doneList");
+  if(done.length){
+    dLabel.style.display="block";
+    dList.innerHTML=done.map(i=>`<div class="check-item"><div class="check-box done" onclick="toggleCheck('${i.id}',false)"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div><span class="check-text done">${i.text}</span></div>`).join("");
+  }else{dLabel.style.display="none";dList.innerHTML="";}
 }
 
-async function loadTodayExercises() {
-  const rows = await queryDB(DB.exercises, {
-    property: "Date", date: { equals: state.todayStr }
-  });
-  state.exercises = rows.map(r => ({
-    id: r.id,
-    name: r.properties.Name?.title?.[0]?.plain_text || "",
-    duration: r.properties.Duration?.number || 0,
-    kcal_burned: r.properties.KcalBurned?.number || 0,
-    time: r.properties.Time?.rich_text?.[0]?.plain_text || "",
-    date: r.properties.Date?.date?.start || state.todayStr,
-  }));
+function renderMeals(){
+  document.getElementById("mealList").innerHTML=state.meals.length
+    ?state.meals.map(m=>`<div class="meal-item"><div><div class="meal-name">${m.name}</div><div class="meal-sub">${m.time} · 탄${m.carb}g 단${m.protein}g 지${m.fat}g</div></div><div style="font-weight:700">${m.kcal} kcal</div></div>`).join("")
+    :'<div class="empty">기록된 식사가 없어요</div>';
+  const tk=state.meals.reduce((s,m)=>s+m.kcal,0);
+  const tb=state.exercises.reduce((s,e)=>s+e.kcal_burned,0);
+  document.getElementById("totalKcal").textContent=tk;
+  document.getElementById("totalBurned").textContent=tb;
+  const net=tk-tb;
+  const netEl=document.getElementById("netKcal");
+  netEl.textContent=net;netEl.style.color=net>0?"#e07b3a":"#2d9a6b";
+  document.getElementById("totalCarb").textContent=state.meals.reduce((s,m)=>s+m.carb,0)+"g";
+  document.getElementById("totalProtein").textContent=state.meals.reduce((s,m)=>s+m.protein,0)+"g";
+  document.getElementById("totalFat").textContent=state.meals.reduce((s,m)=>s+m.fat,0)+"g";
 }
 
-async function loadTodayRoutine() {
-  const rows = await queryDB(DB.routines, {
-    property: "Date", date: { equals: state.todayStr }
-  });
-  state.routines = {};
-  rows.forEach(r => {
-    const key = r.properties.Key?.rich_text?.[0]?.plain_text;
-    if (key) state.routines[key] = {
-      id: r.id,
-      done: r.properties.Done?.checkbox || false,
-      value: r.properties.Value?.number || null,
-    };
-  });
+function renderExercises(){
+  document.getElementById("exerciseList").innerHTML=state.exercises.length
+    ?state.exercises.map(e=>`<div class="meal-item"><div><div class="meal-name">${e.name}${e.count?` (${e.count}개)`:""}</div><div class="meal-sub">${e.time} · ${e.duration}분</div></div><div style="font-weight:700;color:#2d9a6b">-${e.kcal_burned} kcal</div></div>`).join("")
+    :'<div class="empty">기록된 운동이 없어요</div>';
 }
 
-// ===================== RENDER =====================
-function renderAll() {
-  renderChecklist();
-  renderMeals();
-  renderExercises();
-  renderRoutine();
-  renderMiniChecklist();
-  renderWeeklyChart();
-}
-
-function renderChecklist() {
-  const pending = state.checklist.filter(i => !i.done);
-  const done = state.checklist.filter(i => i.done);
-  const pEl = document.getElementById("pendingList");
-  const dEl = document.getElementById("doneList");
-  const dLabel = document.getElementById("doneLabel");
-
-  pEl.innerHTML = pending.length ? pending.map(i => `
-    <div class="check-item">
-      <div class="check-box" onclick="toggleCheck('${i.id}', true)"></div>
-      <span class="check-text">${i.text}</span>
-    </div>`).join("") : '<div class="empty">할 일이 없어요 🎉</div>';
-
-  if (done.length) {
-    dLabel.style.display = "block";
-    dEl.innerHTML = done.map(i => `
-      <div class="check-item">
-        <div class="check-box done" onclick="toggleCheck('${i.id}', false)">
-          <svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </div>
-        <span class="check-text done">${i.text}</span>
-      </div>`).join("");
-  } else {
-    dLabel.style.display = "none";
-    dEl.innerHTML = "";
-  }
-}
-
-function renderMiniChecklist() {
-  const pending = state.checklist.filter(i => !i.done);
-  const el = document.getElementById("miniChecklist");
-  const items = document.getElementById("miniChecklistItems");
-  if (!pending.length) { el.style.display = "none"; return; }
-  el.style.display = "block";
-  items.innerHTML = pending.slice(0,3).map(i => `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:13px;color:#333">
-      <div style="width:14px;height:14px;border-radius:4px;border:1.5px solid #ddd;flex-shrink:0"></div>${i.text}
-    </div>`).join("") + (pending.length > 3 ? `<div style="font-size:11px;color:#bbb">+${pending.length-3}개 더</div>` : "");
-}
-
-function renderMeals() {
-  const el = document.getElementById("mealList");
-  if (!state.meals.length) { el.innerHTML = '<div class="empty">기록된 식사가 없어요</div>'; }
-  else el.innerHTML = state.meals.map(m => `
-    <div class="meal-item">
-      <div><div class="meal-name">${m.name}</div><div class="meal-sub">${m.time} · 탄 ${m.carb}g · 단 ${m.protein}g · 지 ${m.fat}g</div></div>
-      <div class="meal-kcal">${m.kcal} kcal</div>
-    </div>`).join("");
-
-  const tk = state.meals.reduce((s,m)=>s+m.kcal,0);
-  const tb = state.exercises.reduce((s,e)=>s+e.kcal_burned,0);
-  const tc = state.meals.reduce((s,m)=>s+m.carb,0);
-  const tp = state.meals.reduce((s,m)=>s+m.protein,0);
-  const tf = state.meals.reduce((s,m)=>s+m.fat,0);
-  document.getElementById("totalKcal").textContent = tk;
-  document.getElementById("totalBurned").textContent = tb;
-  const net = tk - tb;
-  const netEl = document.getElementById("netKcal");
-  netEl.textContent = net;
-  netEl.style.color = net > 0 ? "#e07b3a" : "#2d9a6b";
-  document.getElementById("totalCarb").textContent = tc + "g";
-  document.getElementById("totalProtein").textContent = tp + "g";
-  document.getElementById("totalFat").textContent = tf + "g";
-}
-
-function renderExercises() {
-  const el = document.getElementById("exerciseList");
-  if (!state.exercises.length) { el.innerHTML = '<div class="empty">기록된 운동이 없어요</div>'; return; }
-  el.innerHTML = state.exercises.map(e => `
-    <div class="meal-item">
-      <div><div class="meal-name">${e.name}</div><div class="meal-sub">${e.time} · ${e.duration}분</div></div>
-      <div class="meal-kcal" style="color:#2d9a6b">-${e.kcal_burned} kcal</div>
-    </div>`).join("");
-}
-
-function renderRoutine() {
-  const el = document.getElementById("routineList");
-  el.innerHTML = ROUTINE_ITEMS.map(item => {
-    const r = state.routines[item.key] || {};
-    const done = r.done || false;
-    if (item.type === "record") {
-      return `<div class="routine-item" onclick="openTrend('${item.key}','${item.label}')">
-        <div class="routine-left">
-          <div class="routine-check ${done?'done':''}">
-            ${done?'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>':''}
-          </div>
-          <div><div class="routine-name">${item.label}</div>${item.desc?`<div style="font-size:11px;color:var(--sub)">${item.desc}</div>`:''}</div>
-        </div>
+function renderRoutine(){
+  document.getElementById("routineList").innerHTML=ROUTINE_ITEMS.map(item=>{
+    const r=state.routines[item.key]||{};
+    const done=r.done||false;
+    const chk=`<div class="routine-check ${done?'done':''}">
+      ${done?'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>':''}
+    </div>`;
+    if(item.type==="record"){
+      return`<div class="routine-item"><div class="routine-left">${chk}<div><div class="routine-name">${item.label}</div></div></div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span class="routine-weight">${r.value ? r.value+'kg' : '-'}</span>
-          <input type="number" step="0.1" placeholder="kg" style="width:64px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;text-align:center;font-family:'Noto Sans KR',sans-serif" 
-            onchange="saveWeight(this.value)" onclick="event.stopPropagation()">
-        </div>
-      </div>`;
+          <span style="font-size:14px;font-weight:700;color:#3b7dd8">${r.value?r.value+'kg':'-'}</span>
+          <input type="number" step="0.1" placeholder="kg" style="width:64px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;text-align:center;font-family:'Noto Sans KR',sans-serif" onchange="saveWeight(this.value)" onclick="event.stopPropagation()">
+        </div></div>`;
     }
-    return `<div class="routine-item" onclick="${item.type==='check'?`toggleRoutine('${item.key}')`:`openTrend('${item.key}','${item.label}')`}">
-      <div class="routine-left">
-        <div class="routine-check ${done?'done':''}">
-          ${done?'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>':''}
-        </div>
-        <div><div class="routine-name">${item.label}</div>${item.desc?`<div style="font-size:11px;color:var(--sub)">${item.desc}</div>`:''}</div>
-      </div>
+    return`<div class="routine-item" onclick="${item.type==='check'?`toggleRoutine('${item.key}')`:`openTrend('${item.key}','${item.label}')`}">
+      <div class="routine-left">${chk}<div><div class="routine-name">${item.label}</div>${item.desc?`<div class="routine-sub">${item.desc}</div>`:''}</div></div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#ccc" stroke-width="2" stroke-linecap="round"/></svg>
     </div>`;
   }).join("");
 }
 
-async function renderWeeklyChart() {
-  const labels = [], intakes = [], burns = [];
-  for (let i=6; i>=0; i--) {
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const ds = d.toISOString().split("T")[0];
-    labels.push(`${d.getMonth()+1}/${d.getDate()}`);
-    const mRows = await queryDB(DB.meals, { property:"Date", date:{equals:ds} });
-    const eRows = await queryDB(DB.exercises, { property:"Date", date:{equals:ds} });
-    intakes.push(mRows.reduce((s,r)=>s+(r.properties.Kcal?.number||0),0));
-    burns.push(eRows.reduce((s,r)=>s+(r.properties.KcalBurned?.number||0),0));
-  }
-  const ctx = document.getElementById("weeklyChart").getContext("2d");
-  if (weeklyChart) weeklyChart.destroy();
-  weeklyChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        { label:"섭취", data:intakes, backgroundColor:"#3b7dd8", borderRadius:4 },
-        { label:"소모", data:burns, backgroundColor:"#2d9a6b", borderRadius:4 },
-      ]
-    },
-    options: {
-      responsive:true, plugins:{legend:{position:"bottom",labels:{font:{size:11},boxWidth:10}}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{display:false}}
-    }
-  });
-}
-
-// ===================== ACTIONS =====================
-async function toggleCheck(id, done) {
-  await updatePage(id, { Done: { checkbox: done } });
-  await loadChecklist();
-  renderChecklist();
-  renderMiniChecklist();
-}
-
-async function toggleRoutine(key) {
-  const r = state.routines[key];
-  const newDone = !(r?.done);
-  if (r?.id) {
-    await updatePage(r.id, { Done: { checkbox: newDone } });
-    state.routines[key].done = newDone;
-  } else {
-    const page = await createPage(DB.routines, {
-      Name: { title: [{ text:{ content: key } }] },
-      Key:  { rich_text: [{ text:{ content: key } }] },
-      Date: { date: { start: state.todayStr } },
-      Done: { checkbox: true },
-    });
-    state.routines[key] = { id: page.id, done: true };
-  }
-  renderRoutine();
-}
-
-async function saveWeight(val) {
-  const v = parseFloat(val);
-  if (isNaN(v)) return;
-  const r = state.routines["weight"];
-  if (r?.id) {
-    await updatePage(r.id, { Done:{checkbox:true}, Value:{number:v} });
-    state.routines["weight"] = { ...r, done:true, value:v };
-  } else {
-    const page = await createPage(DB.routines, {
-      Name:  { title: [{ text:{content:"weight"} }] },
-      Key:   { rich_text: [{ text:{content:"weight"} }] },
-      Date:  { date: { start: state.todayStr } },
-      Done:  { checkbox: true },
-      Value: { number: v },
-    });
-    state.routines["weight"] = { id:page.id, done:true, value:v };
-  }
-  renderRoutine();
-}
-
-async function autoCheckRoutine(key) {
-  const r = state.routines[key];
-  if (r?.done) return;
-  if (r?.id) {
-    await updatePage(r.id, { Done:{checkbox:true} });
-    state.routines[key].done = true;
-  } else {
-    const page = await createPage(DB.routines, {
-      Name: { title:[{text:{content:key}}] },
-      Key:  { rich_text:[{text:{content:key}}] },
-      Date: { date:{ start:state.todayStr } },
-      Done: { checkbox:true },
-    });
-    state.routines[key] = { id:page.id, done:true };
-  }
-}
-
-// ===================== TREND MODAL =====================
-async function openTrend(key, label) {
-  document.getElementById("modalTitle").textContent = label + " 트렌드";
-  document.getElementById("modalOverlay").classList.add("open");
-  const labels=[], vals=[];
-  for(let i=27;i>=0;i--) {
-    const d=new Date(); d.setDate(d.getDate()-i);
+async function renderWeeklyChart(){
+  const labels=[],intakes=[],burns=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
     const ds=d.toISOString().split("T")[0];
     labels.push(`${d.getMonth()+1}/${d.getDate()}`);
-    const rows=await queryDB(DB.routines,{and:[
-      {property:"Key",rich_text:{equals:key}},
-      {property:"Date",date:{equals:ds}}
-    ]});
-    if (key==="weight") vals.push(rows[0]?.properties?.Value?.number||null);
-    else vals.push(rows[0]?.properties?.Done?.checkbox?1:0);
+    const mR=await queryDB(DB.meals,{property:"Date",date:{equals:ds}});
+    const eR=await queryDB(DB.exercises,{property:"Date",date:{equals:ds}});
+    intakes.push(mR.reduce((s,r)=>s+(r.properties.Kcal?.number||0),0));
+    burns.push(eR.reduce((s,r)=>s+(r.properties.KcalBurned?.number||0),0));
+  }
+  const ctx=document.getElementById("weeklyChart").getContext("2d");
+  if(weeklyChartInst)weeklyChartInst.destroy();
+  weeklyChartInst=new Chart(ctx,{type:"bar",data:{labels,datasets:[{label:"섭취",data:intakes,backgroundColor:"#3b7dd8",borderRadius:4},{label:"소모",data:burns,backgroundColor:"#2d9a6b",borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:"bottom",labels:{font:{size:11},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{display:false}}}});
+}
+
+async function toggleCheck(id,done){await updatePage(id,{Done:{checkbox:done}});await loadChecklist();renderChecklist();}
+
+async function toggleRoutine(key){
+  const r=state.routines[key];const newDone=!(r?.done);
+  if(r?.id){await updatePage(r.id,{Done:{checkbox:newDone}});state.routines[key].done=newDone;}
+  else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:key}}]},Key:{rich_text:[{text:{content:key}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true}});state.routines[key]={id:page.id,done:true};}
+  renderRoutine();
+}
+
+async function saveWeight(val){
+  const v=parseFloat(val);if(isNaN(v))return;
+  const r=state.routines["weight"];
+  if(r?.id){await updatePage(r.id,{Done:{checkbox:true},Value:{number:v}});state.routines["weight"]={...r,done:true,value:v};}
+  else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:"weight"}}]},Key:{rich_text:[{text:{content:"weight"}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true},Value:{number:v}});state.routines["weight"]={id:page.id,done:true,value:v};}
+  renderRoutine();
+}
+
+async function autoCheckRoutine(key){
+  const r=state.routines[key];if(r?.done)return;
+  if(r?.id){await updatePage(r.id,{Done:{checkbox:true}});state.routines[key].done=true;}
+  else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:key}}]},Key:{rich_text:[{text:{content:key}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true}});state.routines[key]={id:page.id,done:true};}
+}
+
+async function openTrend(key,label){
+  document.getElementById("modalTitle").textContent=label+" 트렌드";
+  document.getElementById("modalOverlay").classList.add("open");
+  const labels=[],vals=[];
+  for(let i=27;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
+    labels.push(`${d.getMonth()+1}/${d.getDate()}`);
+    const rows=await queryDB(DB.routines,{and:[{property:"Key",rich_text:{equals:key}},{property:"Date",date:{equals:ds}}]});
+    vals.push(key==="weight"?(rows[0]?.properties?.Value?.number||null):(rows[0]?.properties?.Done?.checkbox?1:0));
   }
   const ctx=document.getElementById("trendChart").getContext("2d");
-  if(trendChartInstance) trendChartInstance.destroy();
-  trendChartInstance=new Chart(ctx,{
-    type: key==="weight"?"line":"bar",
-    data:{
-      labels,
-      datasets:[{
-        label,
-        data:vals,
-        backgroundColor:"#3b7dd8",
-        borderColor:"#3b7dd8",
-        borderRadius:4,
-        tension:0.3,
-        spanGaps:true,
-      }]
-    },
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:7,font:{size:9}}},y:{display:key==="weight"}}}
-  });
+  if(trendChartInst)trendChartInst.destroy();
+  trendChartInst=new Chart(ctx,{type:key==="weight"?"line":"bar",data:{labels,datasets:[{label,data:vals,backgroundColor:"#3b7dd8",borderColor:"#3b7dd8",borderRadius:4,tension:0.3,spanGaps:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:7,font:{size:9}}},y:{display:key==="weight"}}}});
 }
 
-function closeModal(e) {
-  if(e.target===document.getElementById("modalOverlay"))
-    document.getElementById("modalOverlay").classList.remove("open");
-}
+function closeModal(e){if(e.target===document.getElementById("modalOverlay"))document.getElementById("modalOverlay").classList.remove("open");}
 
-// ===================== HISTORY =====================
-async function loadHistory() {
-  const d = document.getElementById("historyDate").value;
-  if(!d) return;
+async function loadHistory(){
+  const d=document.getElementById("historyDate").value;if(!d)return;
   showLoading(true);
   const mRows=await queryDB(DB.meals,{property:"Date",date:{equals:d}});
   const eRows=await queryDB(DB.exercises,{property:"Date",date:{equals:d}});
@@ -814,171 +352,126 @@ async function loadHistory() {
   showLoading(false);
   const meals=mRows.map(r=>({name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0}));
   const exs=eRows.map(r=>({name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0}));
-  const tk=meals.reduce((s,m)=>s+m.kcal,0);
-  const tb=exs.reduce((s,e)=>s+e.kcal_burned,0);
-  const el=document.getElementById("historyCard");
-  el.innerHTML=`<div class="card-label">${d} 기록</div>
-  <div class="stat-row">
-    <div class="stat-box"><div class="stat-val" style="color:#3b7dd8">${tk}</div><div class="stat-label">섭취 kcal</div></div>
-    <div class="stat-box"><div class="stat-val" style="color:#2d9a6b">${tb}</div><div class="stat-label">소모 kcal</div></div>
-  </div>
-  ${meals.length?`<div class="card-label" style="margin-top:8px">식사</div>`+meals.map(m=>`<div class="meal-item"><span class="meal-name">${m.name}</span><span style="color:var(--sub);font-size:13px">${m.kcal} kcal</span></div>`).join(""):""}
-  ${exs.length?`<div class="card-label" style="margin-top:8px">운동</div>`+exs.map(e=>`<div class="meal-item"><span class="meal-name">${e.name} (${e.duration}분)</span><span style="color:#2d9a6b;font-size:13px">-${e.kcal_burned} kcal</span></div>`).join(""):""}
-  ${!meals.length&&!exs.length?`<div class="empty">이 날 기록이 없어요</div>`:""}
-  ${rRows.length?`<div class="card-label" style="margin-top:8px">루틴</div>`+rRows.filter(r=>r.properties.Done?.checkbox).map(r=>{const k=r.properties.Key?.rich_text?.[0]?.plain_text;const item=ROUTINE_ITEMS.find(i=>i.key===k);return`<div style="font-size:13px;padding:4px 0;color:var(--text)">✅ ${item?.label||k}${k==='weight'&&r.properties.Value?.number?` ${r.properties.Value.number}kg`:''}</div>`;}).join(""):""}`;
+  const tk=meals.reduce((s,m)=>s+m.kcal,0);const tb=exs.reduce((s,e)=>s+e.kcal_burned,0);
+  document.getElementById("historyCard").innerHTML=`
+    <div class="card-label">${d} 기록</div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-val" style="color:#3b7dd8">${tk}</div><div class="stat-label">섭취 kcal</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:#2d9a6b">${tb}</div><div class="stat-label">소모 kcal</div></div>
+    </div>
+    ${meals.length?`<div class="section-label">식사</div>`+meals.map(m=>`<div class="meal-item"><span>${m.name}</span><span style="color:var(--sub)">${m.kcal} kcal</span></div>`).join(""):""}
+    ${exs.length?`<div class="section-label">운동</div>`+exs.map(e=>`<div class="meal-item"><span>${e.name} (${e.duration}분)</span><span style="color:#2d9a6b">-${e.kcal_burned} kcal</span></div>`).join(""):""}
+    ${rRows.filter(r=>r.properties.Done?.checkbox).length?`<div class="section-label">루틴 완료</div>`+rRows.filter(r=>r.properties.Done?.checkbox).map(r=>{const k=r.properties.Key?.rich_text?.[0]?.plain_text;const item=ROUTINE_ITEMS.find(i=>i.key===k);return`<div style="font-size:13px;padding:4px 0">✅ ${item?.label||k}${k==='weight'&&r.properties.Value?.number?` ${r.properties.Value.number}kg`:''}</div>`;}).join(""):""}
+    ${!meals.length&&!exs.length?`<div class="empty">이 날 기록이 없어요</div>`:""}`;
 }
 
-// ===================== AI CHAT =====================
-const SYSTEM = `당신은 개인 비서 AI입니다. 사용자 메시지를 분석해 JSON만 응답하세요. 다른 텍스트 절대 금지.
-
-지정 음식:
-- 밸런스팩: 탄13g 단30g 지7g 291kcal
-- 쉐이크: 탄10g 단10g 지3.7g 100kcal  
-- 닭가슴살샐러드/닭가슴살 샐러드: 탄8g 단48g 지14g 390kcal
-
-루틴 자동 체크:
-- breakfast: 밸런스팩 아침에 먹으면
-- squat: 스쿼트 80개 이상이면 (운동 기록시 체크)
-- onlyshake: 간식이 쉐이크뿐이면
-- salad: 저녁에 닭가슴살샐러드 먹으면
-- exercise: 계단오르기/수영/댄스 기록시
-
-응답 형식:
-{
-  "type": "checklist_add"|"checklist_done"|"checklist_delete"|"meal_add"|"exercise_add"|"query"|"unknown",
-  "reply": "한국어 응답",
-  "data": {},
-  "auto_routines": []
-}
-
-타입별 data:
-- checklist_add: {"item":"항목명"}
-- checklist_done: {"item":"키워드"}
-- checklist_delete: {"item":"키워드"}  
-- meal_add: {"name":"음식명","carb":숫자,"protein":숫자,"fat":숫자,"kcal":숫자,"meal_type":"아침|점심|저녁|간식"}
-- exercise_add: {"name":"운동명","duration":분,"kcal_burned":추정숫자}
-
-auto_routines: 자동 체크할 루틴 key 배열 (예: ["breakfast","squat"])`;
-
-async function sendMessage() {
-  const input = document.getElementById("chatInput");
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = "";
-  addMessage("user", text);
-  document.getElementById("sendBtn").disabled = true;
-  document.getElementById("typingIndicator").style.display = "block";
-  scrollBottom();
-
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:1000,
-        system: SYSTEM,
-        messages:[{role:"user",content:text}]
-      })
-    });
-    const apiData = await res.json();
-    const raw = apiData.content.map(i=>i.text||"").join("");
-    const parsed = JSON.parse(raw.replace(/```json|```/g,"").trim());
-
-    document.getElementById("typingIndicator").style.display = "none";
-    addMessage("bot", parsed.reply || "처리했습니다!");
-
-    const now = new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-
-    if (parsed.type === "checklist_add" && parsed.data?.item) {
-      const page = await createPage(DB.checklist, {
-        Name: { title:[{text:{content:parsed.data.item}}] },
-        Done: { checkbox:false },
-      });
-      state.checklist.push({ id:page.id, text:parsed.data.item, done:false });
-      renderChecklist(); renderMiniChecklist();
-    }
-    else if (parsed.type === "checklist_done" && parsed.data?.item) {
-      const kw = parsed.data.item.toLowerCase();
-      const item = state.checklist.find(i=>!i.done && i.text.toLowerCase().includes(kw));
-      if (item) { await toggleCheck(item.id, true); }
-    }
-    else if (parsed.type === "checklist_delete" && parsed.data?.item) {
-      const kw = parsed.data.item.toLowerCase();
-      const item = state.checklist.find(i=>i.text.toLowerCase().includes(kw));
-      if (item) { await updatePage(item.id,{Done:{checkbox:false}}); await loadChecklist(); renderChecklist(); renderMiniChecklist(); }
-    }
-    else if (parsed.type === "meal_add" && parsed.data) {
-      const d = parsed.data;
-      await createPage(DB.meals, {
-        Name:    { title:[{text:{content:d.name}}] },
-        Date:    { date:{start:state.todayStr} },
-        Time:    { rich_text:[{text:{content:now}}] },
-        Kcal:    { number:d.kcal },
-        Carb:    { number:d.carb },
-        Protein: { number:d.protein },
-        Fat:     { number:d.fat },
-      });
-      await loadTodayMeals();
-      renderMeals();
-      // 자동 루틴 체크
-      if (parsed.auto_routines) for(const k of parsed.auto_routines) await autoCheckRoutine(k);
-      renderRoutine();
-    }
-    else if (parsed.type === "exercise_add" && parsed.data) {
-      const d = parsed.data;
-      await createPage(DB.exercises, {
-        Name:       { title:[{text:{content:d.name}}] },
-        Date:       { date:{start:state.todayStr} },
-        Time:       { rich_text:[{text:{content:now}}] },
-        Duration:   { number:d.duration },
-        KcalBurned: { number:d.kcal_burned },
-      });
-      await loadTodayExercises();
-      renderExercises(); renderMeals();
-      if (parsed.auto_routines) for(const k of parsed.auto_routines) await autoCheckRoutine(k);
-      renderRoutine();
-    }
-    else if (parsed.type === "query") { switchTab(2); }
-
-  } catch(e) {
-    document.getElementById("typingIndicator").style.display = "none";
-    addMessage("bot", "오류가 발생했습니다. 다시 시도해주세요.");
+function parseMessage(text){
+  const t=text.trim();
+  const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+  // 체크리스트 추가
+  if(/추가/.test(t)){
+    const item=t.replace(/추가|해줘|해주세요|체크리스트|에|를|을/g,"").trim();
+    if(item)return{type:"checklist_add",item,reply:`✅ "${item}" 추가했습니다!`};
   }
-  document.getElementById("sendBtn").disabled = false;
-  scrollBottom();
+  // 체크리스트 완료/삭제
+  if(/삭제|지워|빼/.test(t)){
+    const kw=t.replace(/삭제|지워|빼|줘|해/g,"").trim();
+    return{type:"checklist_delete",item:kw,reply:`🗑️ "${kw}" 삭제했습니다!`};
+  }
+  if(/완료|체크/.test(t)&&!/밸런스팩|쉐이크|샐러드|먹었|운동|달리기|수영|스쿼트|계단|댄스|샤워|묵상/.test(t)){
+    const kw=t.replace(/완료|체크|했어|해|줘/g,"").trim();
+    return{type:"checklist_done",item:kw,reply:`✅ "${kw}" 완료 처리했습니다!`};
+  }
+  // 식단
+  if(/먹었|먹음|섭취/.test(t)){
+    for(const[name,data]of Object.entries(PRESETS)){
+      if(t.includes(name)){
+        const mealType=/아침/.test(t)?"아침":/점심/.test(t)?"점심":/저녁/.test(t)?"저녁":"식사";
+        const autoR=[];
+        if(name.includes("밸런스팩")&&/아침/.test(t))autoR.push("breakfast");
+        if(name.includes("샐러드")&&/저녁/.test(t))autoR.push("salad");
+        if(name.includes("쉐이크"))autoR.push("onlyshake");
+        return{type:"meal_add",name,...data,time:now,mealType,auto_routines:autoR,reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
+      }
+    }
+    for(const[name,data]of Object.entries(FOOD_DB)){
+      if(t.includes(name))return{type:"meal_add",name,...data,time:now,mealType:"식사",auto_routines:[],reply:`🍽️ ${name} 기록! 약 ${data.kcal}kcal (추정값)`};
+    }
+    const foodName=t.replace(/먹었|먹음|섭취|어|요|을|를|아침에|점심에|저녁에/g,"").trim()||"음식";
+    return{type:"meal_add",name:foodName,carb:30,protein:10,fat:5,kcal:200,time:now,mealType:"식사",auto_routines:[],reply:`🍽️ ${foodName} 기록했습니다! (영양소는 추정값이에요)`};
+  }
+  // 운동
+  if(/했어|했음|완료/.test(t)&&/달리기|수영|계단|댄스|스쿼트|운동|걷기|자전거|줄넘기|등산|헬스|요가/.test(t)){
+    const minMatch=t.match(/(\d+)\s*분/);const duration=minMatch?parseInt(minMatch[1]):30;
+    const countMatch=t.match(/(\d+)\s*개/);const count=countMatch?parseInt(countMatch[1]):0;
+    let exName="운동",kcalPer=5;
+    for(const[name,cal]of Object.entries(EXERCISE_DB)){if(t.includes(name)){exName=name;kcalPer=cal;break;}}
+    const kcal_burned=Math.round(duration*kcalPer);
+    const autoR=[];
+    if(["계단오르기","수영","댄스"].some(n=>t.includes(n)))autoR.push("exercise");
+    if(exName==="스쿼트"){state.squat_count+=count;if(state.squat_count>=80)autoR.push("squat");}
+    return{type:"exercise_add",name:exName,duration,kcal_burned,count,time:now,auto_routines:autoR,reply:`🏋️ ${exName} ${duration}분 기록! 약 ${kcal_burned}kcal 소모${count?` (${count}개)`:""}`};
+  }
+  // 몸무게
+  if(/몸무게|체중/.test(t)){const m=t.match(/[\d.]+/);if(m)return{type:"weight",value:parseFloat(m[0]),reply:`⚖️ 몸무게 ${m[0]}kg 기록했습니다!`};}
+  // 루틴
+  if(/냉수샤워|찬물샤워/.test(t))return{type:"routine",key:"shower",reply:"🚿 냉수샤워 완료!"};
+  if(/말씀묵상|묵상|큐티/.test(t))return{type:"routine",key:"devotion",reply:"📖 말씀묵상 완료!"};
+  return{type:"unknown",reply:"잘 이해하지 못했어요.\n위의 예시를 참고해주세요 😊"};
 }
 
-// ===================== UTILS =====================
-function addMessage(role, text) {
-  const el = document.createElement("div");
-  el.className = "msg " + role;
-  el.innerHTML = `<div class="msg-bubble">${text}</div>`;
+async function sendMessage(){
+  const input=document.getElementById("chatInput");
+  const text=input.value.trim();if(!text)return;
+  input.value="";addMsg("user",text);
+  const parsed=parseMessage(text);
+  showLoading(true);
+  try{
+    const now=parsed.time||new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+    if(parsed.type==="checklist_add"){
+      const page=await createPage(DB.checklist,{Name:{title:[{text:{content:parsed.item}}]},Done:{checkbox:false}});
+      state.checklist.push({id:page.id,text:parsed.item,done:false});renderChecklist();
+    }else if(parsed.type==="checklist_done"){
+      const item=state.checklist.find(i=>!i.done&&i.text.includes(parsed.item));
+      if(item)await toggleCheck(item.id,true);else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
+    }else if(parsed.type==="checklist_delete"){
+      const item=state.checklist.find(i=>i.text.includes(parsed.item));
+      if(item){await updatePage(item.id,{Done:{checkbox:false}});await loadChecklist();renderChecklist();}
+      else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
+    }else if(parsed.type==="meal_add"){
+      await createPage(DB.meals,{Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:parsed.mealType||"식사"}}]},Kcal:{number:parsed.kcal},Carb:{number:parsed.carb},Protein:{number:parsed.protein},Fat:{number:parsed.fat}});
+      await loadTodayMeals();renderMeals();
+      if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
+      renderRoutine();
+    }else if(parsed.type==="exercise_add"){
+      await createPage(DB.exercises,{Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},Duration:{number:parsed.duration},KcalBurned:{number:parsed.kcal_burned},Count:{number:parsed.count||0}});
+      await loadTodayExercises();renderExercises();renderMeals();
+      if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
+      renderRoutine();
+    }else if(parsed.type==="weight"){await saveWeight(parsed.value);}
+    else if(parsed.type==="routine"){await toggleRoutine(parsed.key);}
+  }catch(e){parsed.reply="오류: "+e.message;}
+  showLoading(false);addMsg("bot",parsed.reply);
+}
+
+function addMsg(role,text){
+  const el=document.createElement("div");el.className="msg "+role;
+  el.innerHTML=`<div class="msg-bubble">${text}</div>`;
   document.getElementById("messages").appendChild(el);
-  scrollBottom();
-}
-
-function scrollBottom() {
   setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),100);
 }
-
-function switchTab(i) {
+function switchTab(i){
   document.querySelectorAll(".tab").forEach((t,j)=>t.classList.toggle("active",i===j));
   document.querySelectorAll(".content").forEach((c,j)=>c.classList.toggle("active",i===j));
-  document.getElementById("inputBar").style.display = i===0?"flex":"none";
-  currentTab = i;
+  document.getElementById("inputBar").style.display=i===0?"flex":"none";
 }
+function showLoading(v){document.getElementById("loading").classList.toggle("open",v);}
 
-function showLoading(v) {
-  document.getElementById("loadingOverlay").classList.toggle("open",v);
-}
-
-// ===================== INIT =====================
-window.addEventListener("DOMContentLoaded", ()=>{
-  const now = new Date();
-  document.getElementById("headerDate").textContent = now.toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric",weekday:"short"});
-  document.getElementById("historyDate").value = state.todayStr;
-  addMessage("bot","안녕하세요! 무엇이든 말씀해주세요 😊\n\n예시:\n• \"밸런스팩 먹었어\"\n• \"30분 수영했어\"\n• \"다이소 건전지 사기 추가해줘\"\n• \"몸무게 68.5 기록해줘\"");
+window.addEventListener("DOMContentLoaded",()=>{
+  const now=new Date();
+  document.getElementById("headerDate").textContent=now.toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric",weekday:"short"});
+  document.getElementById("historyDate").value=state.todayStr;
+  addMsg("bot","안녕하세요! 😊\n\n위 예시를 참고해서 말씀해주세요!");
   loadAll();
 });
 </script>
