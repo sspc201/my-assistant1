@@ -31,9 +31,15 @@
   .msg-bubble{max-width:78%;padding:11px 14px;border-radius:18px;font-size:14px;line-height:1.55;white-space:pre-wrap;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
   .msg.user .msg-bubble{background:var(--accent);color:#fff;border-radius:18px 18px 4px 18px}
   .msg.bot .msg-bubble{background:var(--card);color:var(--text);border-radius:18px 18px 18px 4px}
+  .typing{display:flex;gap:4px;padding:12px 14px;background:var(--card);border-radius:18px 18px 18px 4px;width:fit-content}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#ccc;animation:bounce 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}
+  .typing span:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
   .input-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 16px 28px;background:rgba(247,246,243,0.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;gap:8px}
   .input-bar input{flex:1;padding:12px 16px;border-radius:24px;border:1.5px solid var(--border);font-size:14px;color:var(--text);background:#fff;outline:none;font-family:'Noto Sans KR',sans-serif}
   .send-btn{width:46px;height:46px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .send-btn:disabled{opacity:0.4}
   .check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5}
   .check-item:last-child{border-bottom:none}
   .check-box{width:20px;height:20px;border-radius:6px;border:1.5px solid #ddd;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
@@ -99,11 +105,12 @@
     • "다이소 건전지 사기 <b>추가</b>"<br>
     • "건전지 <b>완료</b>" / "건전지 <b>삭제</b>"<br>
     • "아침에 밸런스팩 <b>먹었어</b>"<br>
-    • "저녁에 닭가슴살샐러드 <b>먹었어</b>"<br>
+    • "삼겹살 200g <b>먹었어</b>" (뭐든 OK!)<br>
     • "30분 수영 <b>했어</b>" / "스쿼트 100개 <b>했어</b>"<br>
     • "몸무게 68.5 <b>기록</b>" / "냉수샤워 <b>완료</b>"
   </div>
   <div class="messages" id="messages"></div>
+  <div id="typingEl" style="display:none"><div class="typing"><span></span><span></span><span></span></div></div>
 </div>
 
 <div class="content" id="tab1">
@@ -145,7 +152,7 @@
 
 <div class="input-bar" id="inputBar">
   <input type="text" id="chatInput" placeholder="무엇이든 말씀해주세요..." onkeydown="if(event.key==='Enter')sendMessage()">
-  <button class="send-btn" onclick="sendMessage()">
+  <button class="send-btn" id="sendBtn" onclick="sendMessage()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
 </div>
@@ -164,15 +171,6 @@ const PRESETS={
   "닭가슴살샐러드":{carb:8,protein:48,fat:14,kcal:390},
   "닭가슴살 샐러드":{carb:8,protein:48,fat:14,kcal:390},
 };
-const FOOD_DB={
-  "라면":{carb:70,protein:10,fat:14,kcal:450},"김밥":{carb:50,protein:8,fat:6,kcal:290},
-  "비빔밥":{carb:65,protein:15,fat:8,kcal:400},"삼겹살":{carb:0,protein:25,fat:35,kcal:415},
-  "치킨":{carb:15,protein:30,fat:20,kcal:360},"피자":{carb:35,protein:12,fat:14,kcal:320},
-  "햄버거":{carb:40,protein:18,fat:20,kcal:410},"닭가슴살":{carb:0,protein:31,fat:3.6,kcal:165},
-  "고구마":{carb:20,protein:1,fat:0,kcal:86},"바나나":{carb:23,protein:1,fat:0,kcal:89},
-  "계란":{carb:1,protein:6,fat:5,kcal:68},"두부":{carb:2,protein:8,fat:4,kcal:76},
-  "현미밥":{carb:40,protein:3,fat:1,kcal:185},"흰쌀밥":{carb:45,protein:3,fat:0,kcal:200},
-};
 const EXERCISE_DB={
   "달리기":11,"수영":10,"계단오르기":8,"자전거":7,"댄스":6,
   "스쿼트":5,"걷기":4,"요가":3,"줄넘기":10,"등산":7,"헬스":5,
@@ -188,6 +186,40 @@ const ROUTINE_ITEMS=[
   {key:"exercise",label:"메인운동",type:"auto",desc:"계단/수영/댄스 시"},
 ];
 
+const GEMINI_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GEMINI_SYSTEM=`당신은 개인 건강 비서입니다. 사용자 메시지를 분석해 JSON만 응답하세요. 다른 텍스트 절대 금지.
+
+지정 음식 (정확히 사용):
+- 밸런스팩: 탄13g 단30g 지7g 291kcal
+- 쉐이크: 탄10g 단10g 지3.7g 100kcal
+- 닭가슴살샐러드/닭가슴살 샐러드: 탄8g 단48g 지14g 390kcal
+
+응답 형식:
+{
+  "type": "checklist_add"|"checklist_done"|"checklist_delete"|"meal_add"|"exercise_add"|"weight"|"routine"|"unknown",
+  "reply": "친절한 한국어 응답",
+  "data": {}
+}
+
+타입별 data:
+- checklist_add: {"item":"항목명"}
+- checklist_done: {"item":"키워드"}
+- checklist_delete: {"item":"키워드"}
+- meal_add: {"name":"음식명","carb":숫자,"protein":숫자,"fat":숫자,"kcal":숫자,"mealType":"아침|점심|저녁|간식","auto_routines":[]}
+- exercise_add: {"name":"운동명","duration":분,"kcal_burned":추정,"count":횟수(없으면0),"auto_routines":[]}
+- weight: {"value":숫자}
+- routine: {"key":"shower"|"devotion"}
+
+auto_routines 규칙:
+- 밸런스팩+아침 → ["breakfast"]
+- 닭가슴살샐러드+저녁 → ["salad"]
+- 쉐이크+간식 → ["onlyshake"]
+- 계단오르기/수영/댄스 → ["exercise"]
+- 스쿼트 → count 기록 (80개↑ 자동 체크는 앱에서 처리)
+
+음식 탄단지는 정확하게 추정해서 정수로 입력하세요.
+운동 소모 칼로리도 추정해서 입력하세요.`;
+
 let state={checklist:[],meals:[],exercises:[],routines:{},todayStr:new Date().toISOString().split("T")[0],squat_count:0};
 let weeklyChartInst=null,trendChartInst=null;
 
@@ -201,6 +233,22 @@ async function nFetch(path,method="GET",body=null){
 async function queryDB(dbId,filter=null){const data=await nFetch("/v1/databases/"+dbId+"/query","POST",filter?{filter}:{});return data.results||[];}
 async function createPage(dbId,props){return nFetch("/v1/pages","POST",{parent:{database_id:dbId},properties:props});}
 async function updatePage(pageId,props){return nFetch("/v1/pages/"+pageId,"PATCH",{properties:props});}
+
+async function geminiParse(text){
+  const url=PROXY+encodeURIComponent(GEMINI_URL);
+  const res=await fetch(url,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      system_instruction:{parts:[{text:GEMINI_SYSTEM}]},
+      contents:[{parts:[{text}]}],
+      generationConfig:{temperature:0.1}
+    })
+  });
+  const data=await res.json();
+  const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||"{}";
+  return JSON.parse(raw.replace(/```json|```/g,"").trim());
+}
 
 async function loadAll(){
   showLoading(true);
@@ -252,8 +300,7 @@ function renderMeals(){
   const tb=state.exercises.reduce((s,e)=>s+e.kcal_burned,0);
   document.getElementById("totalKcal").textContent=tk;
   document.getElementById("totalBurned").textContent=tb;
-  const net=tk-tb;
-  const netEl=document.getElementById("netKcal");
+  const net=tk-tb;const netEl=document.getElementById("netKcal");
   netEl.textContent=net;netEl.style.color=net>0?"#e07b3a":"#2d9a6b";
   document.getElementById("totalCarb").textContent=state.meals.reduce((s,m)=>s+m.carb,0)+"g";
   document.getElementById("totalProtein").textContent=state.meals.reduce((s,m)=>s+m.protein,0)+"g";
@@ -268,8 +315,7 @@ function renderExercises(){
 
 function renderRoutine(){
   document.getElementById("routineList").innerHTML=ROUTINE_ITEMS.map(item=>{
-    const r=state.routines[item.key]||{};
-    const done=r.done||false;
+    const r=state.routines[item.key]||{};const done=r.done||false;
     const chk=`<div class="routine-check ${done?'done':''}">
       ${done?'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>':''}
     </div>`;
@@ -290,8 +336,7 @@ function renderRoutine(){
 async function renderWeeklyChart(){
   const labels=[],intakes=[],burns=[];
   for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const ds=d.toISOString().split("T")[0];
+    const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
     labels.push(`${d.getMonth()+1}/${d.getDate()}`);
     const mR=await queryDB(DB.meals,{property:"Date",date:{equals:ds}});
     const eR=await queryDB(DB.exercises,{property:"Date",date:{equals:ds}});
@@ -365,101 +410,84 @@ async function loadHistory(){
     ${!meals.length&&!exs.length?`<div class="empty">이 날 기록이 없어요</div>`:""}`;
 }
 
-function parseMessage(text){
-  const t=text.trim();
-  const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-  // 체크리스트 추가
-  if(/추가/.test(t)){
-    const item=t.replace(/추가|해줘|해주세요|체크리스트|에|를|을/g,"").trim();
-    if(item)return{type:"checklist_add",item,reply:`✅ "${item}" 추가했습니다!`};
-  }
-  // 체크리스트 완료/삭제
-  if(/삭제|지워|빼/.test(t)){
-    const kw=t.replace(/삭제|지워|빼|줘|해/g,"").trim();
-    return{type:"checklist_delete",item:kw,reply:`🗑️ "${kw}" 삭제했습니다!`};
-  }
-  if(/완료|체크/.test(t)&&!/밸런스팩|쉐이크|샐러드|먹었|운동|달리기|수영|스쿼트|계단|댄스|샤워|묵상/.test(t)){
-    const kw=t.replace(/완료|체크|했어|해|줘/g,"").trim();
-    return{type:"checklist_done",item:kw,reply:`✅ "${kw}" 완료 처리했습니다!`};
-  }
-  // 식단
-  if(/먹었|먹음|섭취/.test(t)){
-    for(const[name,data]of Object.entries(PRESETS)){
-      if(t.includes(name)){
-        const mealType=/아침/.test(t)?"아침":/점심/.test(t)?"점심":/저녁/.test(t)?"저녁":"식사";
-        const autoR=[];
-        if(name.includes("밸런스팩")&&/아침/.test(t))autoR.push("breakfast");
-        if(name.includes("샐러드")&&/저녁/.test(t))autoR.push("salad");
-        if(name.includes("쉐이크"))autoR.push("onlyshake");
-        return{type:"meal_add",name,...data,time:now,mealType,auto_routines:autoR,reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
-      }
-    }
-    for(const[name,data]of Object.entries(FOOD_DB)){
-      if(t.includes(name))return{type:"meal_add",name,...data,time:now,mealType:"식사",auto_routines:[],reply:`🍽️ ${name} 기록! 약 ${data.kcal}kcal (추정값)`};
-    }
-    const foodName=t.replace(/먹었|먹음|섭취|어|요|을|를|아침에|점심에|저녁에/g,"").trim()||"음식";
-    return{type:"meal_add",name:foodName,carb:30,protein:10,fat:5,kcal:200,time:now,mealType:"식사",auto_routines:[],reply:`🍽️ ${foodName} 기록했습니다! (영양소는 추정값이에요)`};
-  }
-  // 운동
-  if(/했어|했음|완료/.test(t)&&/달리기|수영|계단|댄스|스쿼트|운동|걷기|자전거|줄넘기|등산|헬스|요가/.test(t)){
-    const minMatch=t.match(/(\d+)\s*분/);const duration=minMatch?parseInt(minMatch[1]):30;
-    const countMatch=t.match(/(\d+)\s*개/);const count=countMatch?parseInt(countMatch[1]):0;
-    let exName="운동",kcalPer=5;
-    for(const[name,cal]of Object.entries(EXERCISE_DB)){if(t.includes(name)){exName=name;kcalPer=cal;break;}}
-    const kcal_burned=Math.round(duration*kcalPer);
-    const autoR=[];
-    if(["계단오르기","수영","댄스"].some(n=>t.includes(n)))autoR.push("exercise");
-    if(exName==="스쿼트"){state.squat_count+=count;if(state.squat_count>=80)autoR.push("squat");}
-    return{type:"exercise_add",name:exName,duration,kcal_burned,count,time:now,auto_routines:autoR,reply:`🏋️ ${exName} ${duration}분 기록! 약 ${kcal_burned}kcal 소모${count?` (${count}개)`:""}`};
-  }
-  // 몸무게
-  if(/몸무게|체중/.test(t)){const m=t.match(/[\d.]+/);if(m)return{type:"weight",value:parseFloat(m[0]),reply:`⚖️ 몸무게 ${m[0]}kg 기록했습니다!`};}
-  // 루틴
-  if(/냉수샤워|찬물샤워/.test(t))return{type:"routine",key:"shower",reply:"🚿 냉수샤워 완료!"};
-  if(/말씀묵상|묵상|큐티/.test(t))return{type:"routine",key:"devotion",reply:"📖 말씀묵상 완료!"};
-  return{type:"unknown",reply:"잘 이해하지 못했어요.\n위의 예시를 참고해주세요 😊"};
-}
-
 async function sendMessage(){
   const input=document.getElementById("chatInput");
   const text=input.value.trim();if(!text)return;
-  input.value="";addMsg("user",text);
-  const parsed=parseMessage(text);
+  input.value="";
+  addMsg("user",text);
+  document.getElementById("sendBtn").disabled=true;
+  document.getElementById("typingEl").style.display="block";
+  scrollBottom();
+
+  let parsed;
+  try{parsed=await geminiParse(text);}
+  catch(e){parsed={type:"unknown",reply:"AI 분석 오류: "+e.message,data:{}};}
+
+  document.getElementById("typingEl").style.display="none";
+
+  const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
   showLoading(true);
   try{
-    const now=parsed.time||new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-    if(parsed.type==="checklist_add"){
-      const page=await createPage(DB.checklist,{Name:{title:[{text:{content:parsed.item}}]},Done:{checkbox:false}});
-      state.checklist.push({id:page.id,text:parsed.item,done:false});renderChecklist();
-    }else if(parsed.type==="checklist_done"){
-      const item=state.checklist.find(i=>!i.done&&i.text.includes(parsed.item));
-      if(item)await toggleCheck(item.id,true);else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
-    }else if(parsed.type==="checklist_delete"){
-      const item=state.checklist.find(i=>i.text.includes(parsed.item));
+    const d=parsed.data||{};
+    if(parsed.type==="checklist_add"&&d.item){
+      const page=await createPage(DB.checklist,{Name:{title:[{text:{content:d.item}}]},Done:{checkbox:false}});
+      state.checklist.push({id:page.id,text:d.item,done:false});renderChecklist();
+    }else if(parsed.type==="checklist_done"&&d.item){
+      const item=state.checklist.find(i=>!i.done&&i.text.includes(d.item));
+      if(item)await toggleCheck(item.id,true);else parsed.reply=`"${d.item}" 항목을 찾지 못했어요.`;
+    }else if(parsed.type==="checklist_delete"&&d.item){
+      const item=state.checklist.find(i=>i.text.includes(d.item));
       if(item){await updatePage(item.id,{Done:{checkbox:false}});await loadChecklist();renderChecklist();}
-      else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
+      else parsed.reply=`"${d.item}" 항목을 찾지 못했어요.`;
     }else if(parsed.type==="meal_add"){
-      await createPage(DB.meals,{Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:parsed.mealType||"식사"}}]},Kcal:{number:parsed.kcal},Carb:{number:parsed.carb},Protein:{number:parsed.protein},Fat:{number:parsed.fat}});
+      await createPage(DB.meals,{
+        Name:{title:[{text:{content:d.name||"음식"}}]},
+        Date:{date:{start:state.todayStr}},
+        Time:{rich_text:[{text:{content:now}}]},
+        MealType:{rich_text:[{text:{content:d.mealType||"식사"}}]},
+        Kcal:{number:d.kcal||0},Carb:{number:d.carb||0},
+        Protein:{number:d.protein||0},Fat:{number:d.fat||0},
+      });
       await loadTodayMeals();renderMeals();
-      if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
+      if(d.auto_routines)for(const k of d.auto_routines)await autoCheckRoutine(k);
       renderRoutine();
     }else if(parsed.type==="exercise_add"){
-      await createPage(DB.exercises,{Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},Duration:{number:parsed.duration},KcalBurned:{number:parsed.kcal_burned},Count:{number:parsed.count||0}});
+      // 스쿼트 누적 체크
+      if(d.name?.includes("스쿼트")&&d.count){
+        state.squat_count+=d.count;
+        if(state.squat_count>=80&&!d.auto_routines?.includes("squat"))
+          d.auto_routines=[...(d.auto_routines||[]),"squat"];
+      }
+      await createPage(DB.exercises,{
+        Name:{title:[{text:{content:d.name||"운동"}}]},
+        Date:{date:{start:state.todayStr}},
+        Time:{rich_text:[{text:{content:now}}]},
+        Duration:{number:d.duration||30},
+        KcalBurned:{number:d.kcal_burned||0},
+        Count:{number:d.count||0},
+      });
       await loadTodayExercises();renderExercises();renderMeals();
-      if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
+      if(d.auto_routines)for(const k of d.auto_routines)await autoCheckRoutine(k);
       renderRoutine();
-    }else if(parsed.type==="weight"){await saveWeight(parsed.value);}
-    else if(parsed.type==="routine"){await toggleRoutine(parsed.key);}
+    }else if(parsed.type==="weight"&&d.value){
+      await saveWeight(d.value);
+    }else if(parsed.type==="routine"&&d.key){
+      await toggleRoutine(d.key);
+    }
   }catch(e){parsed.reply="오류: "+e.message;}
-  showLoading(false);addMsg("bot",parsed.reply);
+  showLoading(false);
+  document.getElementById("sendBtn").disabled=false;
+  addMsg("bot",parsed.reply||"처리했습니다!");
+  scrollBottom();
 }
 
 function addMsg(role,text){
   const el=document.createElement("div");el.className="msg "+role;
   el.innerHTML=`<div class="msg-bubble">${text}</div>`;
   document.getElementById("messages").appendChild(el);
-  setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),100);
+  scrollBottom();
 }
+function scrollBottom(){setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),100);}
 function switchTab(i){
   document.querySelectorAll(".tab").forEach((t,j)=>t.classList.toggle("active",i===j));
   document.querySelectorAll(".content").forEach((c,j)=>c.classList.toggle("active",i===j));
@@ -471,7 +499,7 @@ window.addEventListener("DOMContentLoaded",()=>{
   const now=new Date();
   document.getElementById("headerDate").textContent=now.toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric",weekday:"short"});
   document.getElementById("historyDate").value=state.todayStr;
-  addMsg("bot","안녕하세요! 😊\n\n위 예시를 참고해서 말씀해주세요!");
+  addMsg("bot","안녕하세요! 😊\n\n이제 어떤 음식이든 말씀해주시면 탄단지를 분석해드려요!\n\n예: \"삼겹살 200g 먹었어\", \"스타벅스 라떼 마셨어\"");
   loadAll();
 });
 </script>
