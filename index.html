@@ -206,7 +206,7 @@ const r = (n) => Math.round(n); // 반올림 헬퍼
 
 let state = {
   checklist:[], meals:[], exercises:[], routines:{},
-  todayStr: new Date().toISOString().split("T")[0],
+  todayStr: new Date(new Date().getTime() + 9*60*60*1000).toISOString().split("T")[0],
   squat_count: 0
 };
 let weeklyChartInst=null, weightChartInst=null, trendChartInst=null;
