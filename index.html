@@ -66,15 +66,13 @@
   .modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
   .modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--sub)}
   .help{background:#f0f0ef;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#555;line-height:1.9}
-  /* 루틴 히트맵 */
-  .heatmap-wrap{margin-top:16px}
-  .heatmap-title{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
-  .heatmap-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-  .heatmap-label{font-size:11px;color:var(--sub);width:70px;flex-shrink:0;text-align:right}
+  .heatmap-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+  .heatmap-label{font-size:11px;color:var(--sub);width:72px;flex-shrink:0;text-align:right}
   .heatmap-dots{display:flex;gap:4px}
-  .heatmap-dot{width:20px;height:20px;border-radius:5px;background:#ebebeb;position:relative}
+  .heatmap-dot{width:22px;height:22px;border-radius:5px;background:#ebebeb}
   .heatmap-dot.on{background:#2d9a6b}
-  .heatmap-dot-date{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font-size:8px;color:#bbb;white-space:nowrap}
+  .heatmap-dates{display:flex;gap:4px;padding-left:78px;margin-bottom:4px}
+  .heatmap-date{width:22px;font-size:8px;color:#bbb;text-align:center}
 </style>
 </head>
 <body>
@@ -107,10 +105,10 @@
     💡 이렇게 말해보세요<br>
     • "다이소 건전지 사기 <b>추가</b>" / "건전지 <b>완료</b>" / "건전지 <b>삭제</b>"<br>
     • "아침에 밸런스팩 <b>먹었어</b>" / "저녁에 닭가슴살샐러드 <b>먹었어</b>"<br>
-    • "일반식 먹었어" / "일반식 1.5인분 먹었어"<br>
-    • "카페라떼 마셨어" / "라면 먹었어" / "오예스 먹었어"<br>
-    • "30분 수영 <b>했어</b>" / "스쿼트 100개 <b>했어</b>"<br>
-    • "몸무게 68.5 <b>기록</b>" / "냉수샤워 <b>완료</b>"
+    • "일반식 먹었어" / "일반식 1.5인분 먹었어" / "카페라떼 마셨어"<br>
+    • "밸런스팩 <b>취소</b>" (식단 삭제) / "수영 <b>취소</b>" (운동 삭제)<br>
+    • "30분 수영 <b>했어</b>" / "스쿼트 100개 <b>했어</b>" / "5000보 <b>걸었어</b>"<br>
+    • "팔굽혀펴기 20개 <b>했어</b>" / "몸무게 68.5 <b>기록</b>"
   </div>
   <div class="messages" id="messages"></div>
 </div>
@@ -146,7 +144,7 @@
 
 <div class="content" id="tab3">
   <div class="card"><div class="card-label">오늘 루틴</div><div id="routineList"></div></div>
-  <div class="card" id="heatmapCard"><div class="card-label">최근 10일 루틴 현황</div><div id="heatmapContent"><div class="empty">로딩중...</div></div></div>
+  <div class="card"><div class="card-label">최근 10일 루틴 현황</div><div id="heatmapContent"><div class="empty">로딩중...</div></div></div>
 </div>
 
 <div class="content" id="tab4">
@@ -171,26 +169,26 @@ const DB = {
 };
 
 const PRESETS = {
-  "밸런스팩":         {carb:13, protein:30, fat:7,  kcal:291},
-  "쉐이크":           {carb:10, protein:10, fat:3.7,kcal:100},
-  "닭가슴살샐러드":   {carb:8,  protein:48, fat:14, kcal:390},
-  "닭가슴살 샐러드":  {carb:8,  protein:48, fat:14, kcal:390},
-  "카페라떼":         {carb:14, protein:5,  fat:5,  kcal:140},
-  "오트라떼":         {carb:18, protein:5,  fat:5,  kcal:150},
-  "일반식":           {carb:110,protein:35, fat:20, kcal:900},
-  "오예스":           {carb:20, protein:2,  fat:6,  kcal:140},
-  "초코하임":         {carb:18, protein:2,  fat:7,  kcal:140},
-  "라면":             {carb:70, protein:10, fat:14, kcal:450},
-  "샤브샤브":         {carb:15, protein:25, fat:8,  kcal:230},
-  "돼지구이":         {carb:0,  protein:34, fat:42, kcal:510},
-  "목살":             {carb:0,  protein:34, fat:42, kcal:510},
-  "밀크아이스크림":   {carb:25, protein:3,  fat:7,  kcal:180},
+  "밸런스팩":        {carb:13,  protein:30, fat:7,   kcal:291},
+  "쉐이크":          {carb:10,  protein:10, fat:4,   kcal:100},
+  "닭가슴살샐러드":  {carb:8,   protein:48, fat:14,  kcal:390},
+  "닭가슴살 샐러드": {carb:8,   protein:48, fat:14,  kcal:390},
+  "카페라떼":        {carb:14,  protein:5,  fat:5,   kcal:140},
+  "오트라떼":        {carb:18,  protein:5,  fat:5,   kcal:150},
+  "일반식":          {carb:110, protein:35, fat:20,  kcal:900},
+  "오예스":          {carb:20,  protein:2,  fat:6,   kcal:140},
+  "초코하임":        {carb:18,  protein:2,  fat:7,   kcal:140},
+  "라면":            {carb:70,  protein:10, fat:14,  kcal:450},
+  "샤브샤브":        {carb:15,  protein:25, fat:8,   kcal:230},
+  "돼지구이":        {carb:0,   protein:34, fat:42,  kcal:510},
+  "목살":            {carb:0,   protein:34, fat:42,  kcal:510},
+  "밀크아이스크림":  {carb:25,  protein:3,  fat:7,   kcal:180},
 };
 
 const EXERCISE_DB = {
   "달리기":11, "수영":10, "계단오르기":8, "자전거":7, "댄스":6,
   "스쿼트":5,  "걷기":4,  "요가":3, "줄넘기":10, "등산":7,
-  "헬스":5,    "팔굽혀펴기":4,
+  "헬스":5, "팔굽혀펴기":4,
 };
 
 const ROUTINE_ITEMS = [
@@ -204,6 +202,8 @@ const ROUTINE_ITEMS = [
   {key:"exercise",  label:"메인운동",      type:"check", desc:"계단/수영/댄스"},
 ];
 
+const r = (n) => Math.round(n); // 반올림 헬퍼
+
 let state = {
   checklist:[], meals:[], exercises:[], routines:{},
   todayStr: new Date().toISOString().split("T")[0],
@@ -211,7 +211,6 @@ let state = {
 };
 let weeklyChartInst=null, weightChartInst=null, trendChartInst=null;
 
-// ===== NOTION =====
 async function nFetch(path, method="GET", body=null) {
   const url = PROXY + encodeURIComponent("https://api.notion.com" + path);
   const opts = {method, headers:{"Notion-Version":"2022-06-28","Content-Type":"application/json"}};
@@ -225,64 +224,36 @@ async function queryDB(dbId, filter=null) {
 }
 async function createPage(dbId, props) { return nFetch("/v1/pages","POST",{parent:{database_id:dbId},properties:props}); }
 async function updatePage(pageId, props) { return nFetch("/v1/pages/"+pageId,"PATCH",{properties:props}); }
+async function archivePage(pageId) { return nFetch("/v1/pages/"+pageId,"PATCH",{archived:true}); }
 
-// ===== LOAD =====
 async function loadAll() {
   showLoading(true);
   try {
     await Promise.all([loadChecklist(),loadTodayMeals(),loadTodayExercises(),loadTodayRoutine()]);
-    renderAll();
-    renderWeeklyChart();
-    renderWeightChart();
+    renderAll(); renderWeeklyChart(); renderWeightChart();
   } catch(e) { addMsg("bot","⚠️ 로딩 오류: "+e.message); }
   showLoading(false);
 }
 
 async function loadChecklist() {
   const rows = await queryDB(DB.checklist);
-  state.checklist = rows.map(r=>({
-    id:r.id,
-    text:r.properties.Name?.title?.[0]?.plain_text||"",
-    done:r.properties.Done?.checkbox||false
-  })).filter(i=>i.text);
+  state.checklist = rows.map(r=>({id:r.id,text:r.properties.Name?.title?.[0]?.plain_text||"",done:r.properties.Done?.checkbox||false})).filter(i=>i.text);
 }
-
 async function loadTodayMeals() {
   const rows = await queryDB(DB.meals,{property:"Date",date:{equals:state.todayStr}});
-  state.meals = rows.map(r=>({
-    id:r.id,
-    name:r.properties.Name?.title?.[0]?.plain_text||"",
-    kcal:r.properties.Kcal?.number||0,
-    carb:r.properties.Carb?.number||0,
-    protein:r.properties.Protein?.number||0,
-    fat:r.properties.Fat?.number||0,
-    time:r.properties.Time?.rich_text?.[0]?.plain_text||""
-  }));
+  state.meals = rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0,carb:r.properties.Carb?.number||0,protein:r.properties.Protein?.number||0,fat:r.properties.Fat?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||""}));
 }
-
 async function loadTodayExercises() {
   const rows = await queryDB(DB.exercises,{property:"Date",date:{equals:state.todayStr}});
-  state.exercises = rows.map(r=>({
-    id:r.id,
-    name:r.properties.Name?.title?.[0]?.plain_text||"",
-    duration:r.properties.Duration?.number||0,
-    kcal_burned:r.properties.KcalBurned?.number||0,
-    time:r.properties.Time?.rich_text?.[0]?.plain_text||"",
-    count:r.properties.Count?.number||0
-  }));
+  state.exercises = rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||"",count:r.properties.Count?.number||0}));
   state.squat_count = state.exercises.filter(e=>e.name.includes("스쿼트")).reduce((s,e)=>s+(e.count||0),0);
 }
-
 async function loadTodayRoutine() {
   const rows = await queryDB(DB.routines,{property:"Date",date:{equals:state.todayStr}});
   state.routines = {};
-  rows.forEach(r=>{
-    const key=r.properties.Key?.rich_text?.[0]?.plain_text;
-    if(key) state.routines[key]={id:r.id,done:r.properties.Done?.checkbox||false,value:r.properties.Value?.number||null};
-  });
+  rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)state.routines[key]={id:r.id,done:r.properties.Done?.checkbox||false,value:r.properties.Value?.number||null};});
 }
 
-// ===== RENDER =====
 function renderAll(){renderChecklist();renderMeals();renderExercises();renderRoutine();}
 
 function renderChecklist() {
@@ -291,38 +262,35 @@ function renderChecklist() {
   document.getElementById("pendingList").innerHTML = pending.length
     ? pending.map(i=>`<div class="check-item"><div class="check-box" onclick="toggleCheck('${i.id}',true)"></div><span class="check-text">${i.text}</span></div>`).join("")
     : '<div class="empty">할 일이 없어요 🎉</div>';
-  const dLabel=document.getElementById("doneLabel");
-  const dList=document.getElementById("doneList");
-  if(done.length){
-    dLabel.style.display="block";
-    dList.innerHTML=done.map(i=>`<div class="check-item"><div class="check-box done" onclick="toggleCheck('${i.id}',false)"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div><span class="check-text done">${i.text}</span></div>`).join("");
-  } else { dLabel.style.display="none"; dList.innerHTML=""; }
+  const dLabel=document.getElementById("doneLabel"); const dList=document.getElementById("doneList");
+  if(done.length){dLabel.style.display="block";dList.innerHTML=done.map(i=>`<div class="check-item"><div class="check-box done" onclick="toggleCheck('${i.id}',false)"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div><span class="check-text done">${i.text}</span></div>`).join("");}
+  else{dLabel.style.display="none";dList.innerHTML="";}
 }
 
 function renderMeals() {
   document.getElementById("mealList").innerHTML = state.meals.length
-    ? state.meals.map(m=>`<div class="meal-item"><div><div class="meal-name">${m.name}</div><div class="meal-sub">${m.time} · 탄${m.carb}g 단${m.protein}g 지${m.fat}g</div></div><div style="font-weight:700">${m.kcal} kcal</div></div>`).join("")
+    ? state.meals.map(m=>`<div class="meal-item"><div><div class="meal-name">${m.name}</div><div class="meal-sub">${m.time} · 탄${r(m.carb)}g 단${r(m.protein)}g 지${r(m.fat)}g</div></div><div style="font-weight:700">${r(m.kcal)} kcal</div></div>`).join("")
     : '<div class="empty">기록된 식사가 없어요</div>';
-  const tk=state.meals.reduce((s,m)=>s+m.kcal,0);
-  const tb=state.exercises.reduce((s,e)=>s+e.kcal_burned,0);
+  const tk=r(state.meals.reduce((s,m)=>s+m.kcal,0));
+  const tb=r(state.exercises.reduce((s,e)=>s+e.kcal_burned,0));
   document.getElementById("totalKcal").textContent=tk;
   document.getElementById("totalBurned").textContent=tb;
   const net=tk-tb; const netEl=document.getElementById("netKcal");
   netEl.textContent=net; netEl.style.color=net>0?"#e07b3a":"#2d9a6b";
-  document.getElementById("totalCarb").textContent=state.meals.reduce((s,m)=>s+m.carb,0)+"g";
-  document.getElementById("totalProtein").textContent=state.meals.reduce((s,m)=>s+m.protein,0)+"g";
-  document.getElementById("totalFat").textContent=state.meals.reduce((s,m)=>s+m.fat,0)+"g";
+  document.getElementById("totalCarb").textContent=r(state.meals.reduce((s,m)=>s+m.carb,0))+"g";
+  document.getElementById("totalProtein").textContent=r(state.meals.reduce((s,m)=>s+m.protein,0))+"g";
+  document.getElementById("totalFat").textContent=r(state.meals.reduce((s,m)=>s+m.fat,0))+"g";
 }
 
 function renderExercises() {
   document.getElementById("exerciseList").innerHTML = state.exercises.length
-    ? state.exercises.map(e=>`<div class="meal-item"><div><div class="meal-name">${e.name}${e.count?` (${e.count}개)`:""}</div><div class="meal-sub">${e.time} · ${e.duration}분</div></div><div style="font-weight:700;color:#2d9a6b">-${e.kcal_burned} kcal</div></div>`).join("")
+    ? state.exercises.map(e=>`<div class="meal-item"><div><div class="meal-name">${e.name}${e.count?` (${e.count}개)`:e.duration?` (${e.duration}분)`:""}</div><div class="meal-sub">${e.time}</div></div><div style="font-weight:700;color:#2d9a6b">-${r(e.kcal_burned)} kcal</div></div>`).join("")
     : '<div class="empty">기록된 운동이 없어요</div>';
 }
 
 function renderRoutine() {
   document.getElementById("routineList").innerHTML = ROUTINE_ITEMS.map(item=>{
-    const r=state.routines[item.key]||{}; const done=r.done||false;
+    const rt=state.routines[item.key]||{}; const done=rt.done||false;
     const chk=`<div class="routine-check ${done?'done':''}" onclick="toggleRoutine('${item.key}')">
       ${done?'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>':''}
     </div>`;
@@ -330,7 +298,7 @@ function renderRoutine() {
       return`<div class="routine-item">
         <div class="routine-left">${chk}<div><div class="routine-name">${item.label}</div></div></div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:14px;font-weight:700;color:#3b7dd8">${r.value?r.value+'kg':'-'}</span>
+          <span style="font-size:14px;font-weight:700;color:#3b7dd8">${rt.value?rt.value+'kg':'-'}</span>
           <input type="number" step="0.1" placeholder="kg" style="width:64px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;text-align:center;font-family:'Noto Sans KR',sans-serif" onchange="saveWeight(this.value)" onclick="event.stopPropagation()">
         </div></div>`;
     }
@@ -344,55 +312,36 @@ function renderRoutine() {
 }
 
 async function renderHeatmap() {
-  const days = [];
-  for(let i=9;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    days.push(d.toISOString().split("T")[0]);
-  }
-  // 각 날짜별 루틴 데이터 로드
-  const allData = {};
+  const days=[];
+  for(let i=9;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().split("T")[0]);}
+  const allData={};
   for(const ds of days){
-    const rows = await queryDB(DB.routines,{property:"Date",date:{equals:ds}});
-    allData[ds] = {};
-    rows.forEach(r=>{
-      const key=r.properties.Key?.rich_text?.[0]?.plain_text;
-      if(key) allData[ds][key]=r.properties.Done?.checkbox||false;
-    });
+    const rows=await queryDB(DB.routines,{property:"Date",date:{equals:ds}});
+    allData[ds]={};
+    rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)allData[ds][key]=r.properties.Done?.checkbox||false;});
   }
-
-  const checkItems = ROUTINE_ITEMS.filter(i=>i.type!=="record");
-  const dateLabels = days.map(ds=>{
-    const d=new Date(ds);
-    return `${d.getMonth()+1}/${d.getDate()}`;
-  });
-
-  let html = '';
+  const checkItems=ROUTINE_ITEMS.filter(i=>i.type!=="record");
+  const dateLabels=days.map(ds=>{const d=new Date(ds);return`${d.getMonth()+1}/${d.getDate()}`;});
+  let html=`<div style="overflow-x:auto;padding-bottom:4px">
+    <div class="heatmap-dates">${dateLabels.map(l=>`<div class="heatmap-date">${l}</div>`).join("")}</div>`;
   checkItems.forEach(item=>{
-    html += `<div class="heatmap-row">
-      <div class="heatmap-label">${item.label}</div>
-      <div class="heatmap-dots">`;
-    days.forEach((ds,i)=>{
-      const done = allData[ds]?.[item.key]||false;
-      html += `<div class="heatmap-dot ${done?'on':''}" title="${dateLabels[i]}">
-        ${i===0||i===4||i===9?`<div class="heatmap-dot-date">${dateLabels[i]}</div>`:''}
-      </div>`;
-    });
-    html += `</div></div>`;
+    html+=`<div class="heatmap-row"><div class="heatmap-label">${item.label}</div><div class="heatmap-dots">`;
+    days.forEach(ds=>{html+=`<div class="heatmap-dot ${allData[ds]?.[item.key]?'on':''}"></div>`;});
+    html+=`</div></div>`;
   });
-
-  document.getElementById("heatmapContent").innerHTML = `<div style="overflow-x:auto;padding-bottom:18px">${html}</div>`;
+  html+="</div>";
+  document.getElementById("heatmapContent").innerHTML=html;
 }
 
 async function renderWeeklyChart() {
   const labels=[],intakes=[],burns=[];
   for(let i=6;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const ds=d.toISOString().split("T")[0];
+    const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
     labels.push(`${d.getMonth()+1}/${d.getDate()}`);
     const mR=await queryDB(DB.meals,{property:"Date",date:{equals:ds}});
     const eR=await queryDB(DB.exercises,{property:"Date",date:{equals:ds}});
-    intakes.push(mR.reduce((s,r)=>s+(r.properties.Kcal?.number||0),0));
-    burns.push(eR.reduce((s,r)=>s+(r.properties.KcalBurned?.number||0),0));
+    intakes.push(r(mR.reduce((s,row)=>s+(row.properties.Kcal?.number||0),0)));
+    burns.push(r(eR.reduce((s,row)=>s+(row.properties.KcalBurned?.number||0),0)));
   }
   const ctx=document.getElementById("weeklyChart").getContext("2d");
   if(weeklyChartInst)weeklyChartInst.destroy();
@@ -400,119 +349,52 @@ async function renderWeeklyChart() {
 }
 
 async function renderWeightChart() {
-  // 전체 몸무게 기록 로드
-  const rows = await queryDB(DB.routines,{and:[
-    {property:"Key",rich_text:{equals:"weight"}},
-    {property:"Done",checkbox:{equals:true}}
-  ]});
-  const data = rows
-    .filter(r=>r.properties.Value?.number&&r.properties.Date?.date?.start)
-    .map(r=>({date:r.properties.Date.date.start, val:r.properties.Value.number}))
-    .sort((a,b)=>a.date.localeCompare(b.date));
-  
-  if(!data.length) return;
-  
+  const rows=await queryDB(DB.routines,{and:[{property:"Key",rich_text:{equals:"weight"}},{property:"Done",checkbox:{equals:true}}]});
+  const data=rows.filter(r=>r.properties.Value?.number&&r.properties.Date?.date?.start).map(r=>({date:r.properties.Date.date.start,val:r.properties.Value.number})).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!data.length)return;
   const ctx=document.getElementById("weightChart").getContext("2d");
   if(weightChartInst)weightChartInst.destroy();
-  weightChartInst=new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:data.map(d=>{const dt=new Date(d.date);return`${dt.getMonth()+1}/${dt.getDate()}`;}),
-      datasets:[{label:"몸무게(kg)",data:data.map(d=>d.val),borderColor:"#7c5cbf",backgroundColor:"rgba(124,92,191,0.1)",borderWidth:2,tension:0.3,pointRadius:3,fill:true}]
-    },
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:9}}},y:{ticks:{font:{size:10}}}}}
-  });
+  weightChartInst=new Chart(ctx,{type:"line",data:{labels:data.map(d=>{const dt=new Date(d.date);return`${dt.getMonth()+1}/${dt.getDate()}`;}),datasets:[{label:"몸무게(kg)",data:data.map(d=>d.val),borderColor:"#7c5cbf",backgroundColor:"rgba(124,92,191,0.1)",borderWidth:2,tension:0.3,pointRadius:3,fill:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:9}}},y:{ticks:{font:{size:10}}}}}});
 }
 
-// ===== ACTIONS =====
-async function toggleCheck(id,done){
-  await updatePage(id,{Done:{checkbox:done}});
-  await loadChecklist(); renderChecklist();
-}
+async function toggleCheck(id,done){await updatePage(id,{Done:{checkbox:done}});await loadChecklist();renderChecklist();}
 
 async function toggleRoutine(key){
-  const r=state.routines[key]; const newDone=!(r?.done);
-  if(r?.id){
-    await updatePage(r.id,{Done:{checkbox:newDone}});
-    state.routines[key].done=newDone;
-  } else {
-    const page=await createPage(DB.routines,{
-      Name:{title:[{text:{content:key}}]},
-      Key:{rich_text:[{text:{content:key}}]},
-      Date:{date:{start:state.todayStr}},
-      Done:{checkbox:true}
-    });
-    state.routines[key]={id:page.id,done:true};
-  }
+  const rt=state.routines[key]; const newDone=!(rt?.done);
+  if(rt?.id){await updatePage(rt.id,{Done:{checkbox:newDone}});state.routines[key].done=newDone;}
+  else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:key}}]},Key:{rich_text:[{text:{content:key}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true}});state.routines[key]={id:page.id,done:true};}
 
-  // 저녁샐러드 수동 체크시 식단 반영
-  if(key==="salad" && newDone){
-    const preset=PRESETS["닭가슴살샐러드"];
+  // 저녁샐러드 체크시 식단 반영
+  if(key==="salad"&&newDone){
+    const p=PRESETS["닭가슴살샐러드"];
     const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-    await createPage(DB.meals,{
-      Name:{title:[{text:{content:"닭가슴살샐러드"}}]},
-      Date:{date:{start:state.todayStr}},
-      Time:{rich_text:[{text:{content:now}}]},
-      MealType:{rich_text:[{text:{content:"저녁"}}]},
-      Kcal:{number:preset.kcal},Carb:{number:preset.carb},
-      Protein:{number:preset.protein},Fat:{number:preset.fat},
-    });
-    await loadTodayMeals(); renderMeals();
+    await createPage(DB.meals,{Name:{title:[{text:{content:"닭가슴살샐러드"}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:"저녁"}}]},Kcal:{number:p.kcal},Carb:{number:p.carb},Protein:{number:p.protein},Fat:{number:p.fat}});
+    await loadTodayMeals();renderMeals();
     addMsg("bot","저녁샐러드 체크! 식단에도 닭가슴살샐러드 390kcal 기록했어요 😊");
   }
-
-  // 아침밸런스팩 수동 체크시 식단 반영
-  if(key==="breakfast" && newDone){
-    const preset=PRESETS["밸런스팩"];
+  // 아침밸런스팩 체크시 식단 반영
+  if(key==="breakfast"&&newDone){
+    const p=PRESETS["밸런스팩"];
     const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-    await createPage(DB.meals,{
-      Name:{title:[{text:{content:"밸런스팩"}}]},
-      Date:{date:{start:state.todayStr}},
-      Time:{rich_text:[{text:{content:now}}]},
-      MealType:{rich_text:[{text:{content:"아침"}}]},
-      Kcal:{number:preset.kcal},Carb:{number:preset.carb},
-      Protein:{number:preset.protein},Fat:{number:preset.fat},
-    });
-    await loadTodayMeals(); renderMeals();
-    addMsg("bot","아침 밸런스팩 체크! 식단에도 밸런스팩 291kcal 기록했어요 😊");
+    await createPage(DB.meals,{Name:{title:[{text:{content:"밸런스팩"}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:"아침"}}]},Kcal:{number:p.kcal},Carb:{number:p.carb},Protein:{number:p.protein},Fat:{number:p.fat}});
+    await loadTodayMeals();renderMeals();
+    addMsg("bot","아침 밸런스팩 체크! 식단에도 291kcal 기록했어요 😊");
   }
-
   renderRoutine();
 }
 
 async function saveWeight(val){
-  const v=parseFloat(val); if(isNaN(v))return;
-  const r=state.routines["weight"];
-  if(r?.id){
-    await updatePage(r.id,{Done:{checkbox:true},Value:{number:v}});
-    state.routines["weight"]={...r,done:true,value:v};
-  } else {
-    const page=await createPage(DB.routines,{
-      Name:{title:[{text:{content:"weight"}}]},
-      Key:{rich_text:[{text:{content:"weight"}}]},
-      Date:{date:{start:state.todayStr}},
-      Done:{checkbox:true},Value:{number:v}
-    });
-    state.routines["weight"]={id:page.id,done:true,value:v};
-  }
-  renderRoutine();
-  renderWeightChart();
+  const v=parseFloat(val);if(isNaN(v))return;
+  const rt=state.routines["weight"];
+  if(rt?.id){await updatePage(rt.id,{Done:{checkbox:true},Value:{number:v}});state.routines["weight"]={...rt,done:true,value:v};}
+  else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:"weight"}}]},Key:{rich_text:[{text:{content:"weight"}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true},Value:{number:v}});state.routines["weight"]={id:page.id,done:true,value:v};}
+  renderRoutine();renderWeightChart();
 }
 
 async function autoCheckRoutine(key){
-  const r=state.routines[key]; if(r?.done)return;
-  if(r?.id){
-    await updatePage(r.id,{Done:{checkbox:true}});
-    state.routines[key].done=true;
-  } else {
-    const page=await createPage(DB.routines,{
-      Name:{title:[{text:{content:key}}]},
-      Key:{rich_text:[{text:{content:key}}]},
-      Date:{date:{start:state.todayStr}},
-      Done:{checkbox:true}
-    });
-    state.routines[key]={id:page.id,done:true};
-  }
+  const rt=state.routines[key];if(rt?.done)return;
+  if(rt?.id){await updatePage(rt.id,{Done:{checkbox:true}});state.routines[key].done=true;}
+  else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:key}}]},Key:{rich_text:[{text:{content:key}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true}});state.routines[key]={id:page.id,done:true};}
 }
 
 async function openTrend(key,label){
@@ -520,7 +402,7 @@ async function openTrend(key,label){
   document.getElementById("modalOverlay").classList.add("open");
   const labels=[],vals=[];
   for(let i=27;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i); const ds=d.toISOString().split("T")[0];
+    const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];
     labels.push(`${d.getMonth()+1}/${d.getDate()}`);
     const rows=await queryDB(DB.routines,{and:[{property:"Key",rich_text:{equals:key}},{property:"Date",date:{equals:ds}}]});
     vals.push(rows[0]?.properties?.Done?.checkbox?1:0);
@@ -533,31 +415,42 @@ async function openTrend(key,label){
 function closeModal(e){if(e.target===document.getElementById("modalOverlay"))document.getElementById("modalOverlay").classList.remove("open");}
 
 async function loadHistory(){
-  const d=document.getElementById("historyDate").value; if(!d)return;
+  const d=document.getElementById("historyDate").value;if(!d)return;
   showLoading(true);
   const mRows=await queryDB(DB.meals,{property:"Date",date:{equals:d}});
   const eRows=await queryDB(DB.exercises,{property:"Date",date:{equals:d}});
   const rRows=await queryDB(DB.routines,{property:"Date",date:{equals:d}});
   showLoading(false);
-  const meals=mRows.map(r=>({name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0}));
-  const exs=eRows.map(r=>({name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0}));
-  const tk=meals.reduce((s,m)=>s+m.kcal,0); const tb=exs.reduce((s,e)=>s+e.kcal_burned,0);
+  const meals=mRows.map(row=>({name:row.properties.Name?.title?.[0]?.plain_text||"",kcal:row.properties.Kcal?.number||0}));
+  const exs=eRows.map(row=>({name:row.properties.Name?.title?.[0]?.plain_text||"",duration:row.properties.Duration?.number||0,count:row.properties.Count?.number||0,kcal_burned:row.properties.KcalBurned?.number||0}));
+  const tk=r(meals.reduce((s,m)=>s+m.kcal,0));const tb=r(exs.reduce((s,e)=>s+e.kcal_burned,0));
   document.getElementById("historyCard").innerHTML=`
     <div class="card-label">${d} 기록</div>
     <div class="stat-row">
       <div class="stat-box"><div class="stat-val" style="color:#3b7dd8">${tk}</div><div class="stat-label">섭취 kcal</div></div>
       <div class="stat-box"><div class="stat-val" style="color:#2d9a6b">${tb}</div><div class="stat-label">소모 kcal</div></div>
     </div>
-    ${meals.length?`<div class="section-label">식사</div>`+meals.map(m=>`<div class="meal-item"><span>${m.name}</span><span style="color:var(--sub)">${m.kcal} kcal</span></div>`).join(""):""}
-    ${exs.length?`<div class="section-label">운동</div>`+exs.map(e=>`<div class="meal-item"><span>${e.name} (${e.duration}분)</span><span style="color:#2d9a6b">-${e.kcal_burned} kcal</span></div>`).join(""):""}
-    ${rRows.filter(r=>r.properties.Done?.checkbox).length?`<div class="section-label">루틴 완료</div>`+rRows.filter(r=>r.properties.Done?.checkbox).map(r=>{const k=r.properties.Key?.rich_text?.[0]?.plain_text;const item=ROUTINE_ITEMS.find(i=>i.key===k);return`<div style="font-size:13px;padding:4px 0">✅ ${item?.label||k}${k==='weight'&&r.properties.Value?.number?` ${r.properties.Value.number}kg`:''}</div>`;}).join(""):""}
+    ${meals.length?`<div class="section-label">식사</div>`+meals.map(m=>`<div class="meal-item"><span>${m.name}</span><span style="color:var(--sub)">${r(m.kcal)} kcal</span></div>`).join(""):""}
+    ${exs.length?`<div class="section-label">운동</div>`+exs.map(e=>`<div class="meal-item"><span>${e.name}${e.count?` (${e.count}개)`:e.duration?` (${e.duration}분)`:""}</span><span style="color:#2d9a6b">-${r(e.kcal_burned)} kcal</span></div>`).join(""):""}
+    ${rRows.filter(row=>row.properties.Done?.checkbox).length?`<div class="section-label">루틴 완료</div>`+rRows.filter(row=>row.properties.Done?.checkbox).map(row=>{const k=row.properties.Key?.rich_text?.[0]?.plain_text;const item=ROUTINE_ITEMS.find(i=>i.key===k);return`<div style="font-size:13px;padding:4px 0">✅ ${item?.label||k}${k==='weight'&&row.properties.Value?.number?` ${row.properties.Value.number}kg`:''}</div>`;}).join(""):""}
     ${!meals.length&&!exs.length?`<div class="empty">이 날 기록이 없어요</div>`:""}`;
 }
 
-// ===== KEYWORD PARSER =====
 function parseMessage(text){
   const t=text.trim();
   const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+
+  // 식단 취소
+  if(/취소/.test(t)&&!/운동|걷기|달리기|수영|스쿼트|계단|댄스|팔굽|헬스|요가/.test(t)){
+    const kw=t.replace(/취소|해줘|해/g,"").trim();
+    return{type:"meal_cancel",item:kw,reply:`🗑️ "${kw}" 식단 기록을 삭제했습니다!`};
+  }
+
+  // 운동 취소
+  if(/취소/.test(t)&&/운동|걷기|달리기|수영|스쿼트|계단|댄스|팔굽|헬스|요가/.test(t)){
+    const kw=t.replace(/취소|해줘|해/g,"").trim();
+    return{type:"exercise_cancel",item:kw,reply:`🗑️ "${kw}" 운동 기록을 삭제했습니다!`};
+  }
 
   // 체크리스트 추가
   if(/추가/.test(t)&&!/먹었|운동|했어|수영|스쿼트|달리기|계단|댄스|팔굽/.test(t)){
@@ -565,13 +458,13 @@ function parseMessage(text){
     if(item)return{type:"checklist_add",item,reply:`✅ "${item}" 추가했습니다!`};
   }
 
-  // 삭제
+  // 체크리스트 삭제
   if(/삭제|지워|빼/.test(t)){
     const kw=t.replace(/삭제|지워|빼|줘|해/g,"").trim();
     return{type:"checklist_delete",item:kw,reply:`🗑️ "${kw}" 삭제했습니다!`};
   }
 
-  // 완료
+  // 체크리스트 완료
   if(/완료|체크/.test(t)&&!/밸런스팩|쉐이크|샐러드|먹었|운동|달리기|수영|스쿼트|계단|댄스|샤워|묵상|팔굽/.test(t)){
     const kw=t.replace(/완료|체크|했어|해|줘/g,"").trim();
     return{type:"checklist_done",item:kw,reply:`✅ "${kw}" 완료 처리했습니다!`};
@@ -579,23 +472,15 @@ function parseMessage(text){
 
   // 식단
   if(/먹었|마셨|섭취|먹음/.test(t)){
-    // 일반식 인분 처리
+    // 일반식 인분
     if(/일반식/.test(t)){
-      const match=t.match(/([\d.]+)\s*인분/);
-      const portions=match?parseFloat(match[1]):1;
+      const match=t.match(/([\d.]+)\s*인분/);const portions=match?parseFloat(match[1]):1;
       const base=PRESETS["일반식"];
-      const data={
-        carb:Math.round(base.carb*portions),
-        protein:Math.round(base.protein*portions),
-        fat:Math.round(base.fat*portions),
-        kcal:Math.round(base.kcal*portions)
-      };
+      const data={carb:r(base.carb*portions),protein:r(base.protein*portions),fat:r(base.fat*portions),kcal:r(base.kcal*portions)};
       const name=portions===1?"일반식":`일반식 ${portions}인분`;
       const mealType=/아침/.test(t)?"아침":/점심/.test(t)?"점심":/저녁/.test(t)?"저녁":"식사";
-      return{type:"meal_add",name,...data,time:now,mealType,auto_routines:[],
-        reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
+      return{type:"meal_add",name,...data,time:now,mealType,auto_routines:[],reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
     }
-
     // 지정 음식
     for(const[name,data]of Object.entries(PRESETS)){
       if(t.includes(name)){
@@ -604,36 +489,46 @@ function parseMessage(text){
         if(name.includes("밸런스팩")&&/아침/.test(t))autoR.push("breakfast");
         if((name.includes("닭가슴살샐러드")||name.includes("닭가슴살 샐러드"))&&/저녁/.test(t))autoR.push("salad");
         if(name.includes("쉐이크"))autoR.push("onlyshake");
-        return{type:"meal_add",name,...data,time:now,mealType,auto_routines:autoR,
-          reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
+        return{type:"meal_add",name,...data,time:now,mealType,auto_routines:autoR,reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
       }
     }
-
-    // 모르는 음식
     const foodName=t.replace(/먹었|마셨|섭취|먹음|어|요|을|를|아침에|점심에|저녁에|간식으로/g,"").trim()||"음식";
-    return{type:"meal_add",name:foodName,carb:30,protein:10,fat:5,kcal:200,time:now,mealType:"식사",auto_routines:[],
-      reply:`🍽️ ${foodName} 기록했습니다! (영양소는 추정값이에요)`};
+    return{type:"meal_add",name:foodName,carb:30,protein:10,fat:5,kcal:200,time:now,mealType:"식사",auto_routines:[],reply:`🍽️ ${foodName} 기록했습니다! (영양소는 추정값이에요)`};
+  }
+
+  // 걸음수
+  if(/보/.test(t)&&/걸었|걸음/.test(t)){
+    const match=t.match(/(\d+)\s*보/);const steps=match?parseInt(match[1]):0;
+    const kcal=r(steps*0.04);
+    return{type:"exercise_add",name:"걷기",duration:r(steps/100),kcal_burned:kcal,count:steps,time:now,auto_routines:[],reply:`🚶 ${steps.toLocaleString()}보 기록! 약 ${kcal}kcal 소모`};
   }
 
   // 운동
   if(/했어|했음|완료/.test(t)&&/달리기|수영|계단|댄스|스쿼트|운동|걷기|자전거|줄넘기|등산|헬스|요가|팔굽/.test(t)){
-    const minMatch=t.match(/(\d+)\s*분/); const duration=minMatch?parseInt(minMatch[1]):30;
-    const countMatch=t.match(/(\d+)\s*개/); const count=countMatch?parseInt(countMatch[1]):0;
+    const minMatch=t.match(/(\d+)\s*분/);const duration=minMatch?parseInt(minMatch[1]):0;
+    const countMatch=t.match(/(\d+)\s*개/);const count=countMatch?parseInt(countMatch[1]):0;
     let exName="운동",kcalPer=5;
     for(const[name,cal]of Object.entries(EXERCISE_DB)){if(t.includes(name)){exName=name;kcalPer=cal;break;}}
-    const kcal_burned=Math.round(duration*kcalPer);
+
+    let kcal_burned=0;
+    // 팔굽혀펴기, 스쿼트: 개수 기반
+    if(exName==="팔굽혀펴기"||exName==="스쿼트"){
+      kcal_burned=count?r(count*0.5):r(duration*kcalPer);
+    } else {
+      kcal_burned=duration?r(duration*kcalPer):r(count*0.5);
+    }
+
     const autoR=[];
     if(["계단오르기","수영","댄스"].some(n=>t.includes(n)))autoR.push("exercise");
     if(exName==="스쿼트"){state.squat_count+=count;if(state.squat_count>=80)autoR.push("squat");}
-    return{type:"exercise_add",name:exName,duration,kcal_burned,count,time:now,auto_routines:autoR,
-      reply:`🏋️ ${exName} ${duration}분 기록! 약 ${kcal_burned}kcal 소모${count?` (${count}개)`:""}`};
+
+    const displayCount=count||0; const displayDur=duration||0;
+    const desc=displayCount?`${displayCount}개`:displayDur?`${displayDur}분`:"";
+    return{type:"exercise_add",name:exName,duration:displayDur,kcal_burned,count:displayCount,time:now,auto_routines:autoR,reply:`🏋️ ${exName}${desc?` (${desc})`:" "} 기록! 약 ${kcal_burned}kcal 소모`};
   }
 
   // 몸무게
-  if(/몸무게|체중/.test(t)){
-    const m=t.match(/[\d.]+/);
-    if(m)return{type:"weight",value:parseFloat(m[0]),reply:`⚖️ 몸무게 ${m[0]}kg 기록했습니다!`};
-  }
+  if(/몸무게|체중/.test(t)){const m=t.match(/[\d.]+/);if(m)return{type:"weight",value:parseFloat(m[0]),reply:`⚖️ 몸무게 ${m[0]}kg 기록했습니다!`};}
 
   // 루틴
   if(/냉수샤워|찬물샤워/.test(t))return{type:"routine",key:"shower",reply:"🚿 냉수샤워 완료!"};
@@ -642,61 +537,62 @@ function parseMessage(text){
   return{type:"unknown",reply:"잘 이해하지 못했어요.\n위 예시를 참고해주세요 😊"};
 }
 
-// ===== SEND =====
 async function sendMessage(){
   const input=document.getElementById("chatInput");
-  const text=input.value.trim(); if(!text)return;
-  input.value=""; addMsg("user",text);
+  const text=input.value.trim();if(!text)return;
+  input.value="";addMsg("user",text);
   const parsed=parseMessage(text);
   showLoading(true);
   try{
     const now=parsed.time||new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
     if(parsed.type==="checklist_add"){
       const page=await createPage(DB.checklist,{Name:{title:[{text:{content:parsed.item}}]},Done:{checkbox:false}});
-      state.checklist.push({id:page.id,text:parsed.item,done:false}); renderChecklist();
+      state.checklist.push({id:page.id,text:parsed.item,done:false});renderChecklist();
     } else if(parsed.type==="checklist_done"){
       const item=state.checklist.find(i=>!i.done&&i.text.includes(parsed.item));
-      if(item) await toggleCheck(item.id,true); else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
+      if(item)await toggleCheck(item.id,true);else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
     } else if(parsed.type==="checklist_delete"){
       const item=state.checklist.find(i=>i.text.includes(parsed.item));
-      if(item){await updatePage(item.id,{Done:{checkbox:false}});await loadChecklist();renderChecklist();}
+      if(item){await archivePage(item.id);await loadChecklist();renderChecklist();}
       else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
+    } else if(parsed.type==="meal_cancel"){
+      const item=state.meals.slice().reverse().find(m=>m.name.includes(parsed.item));
+      if(item){await archivePage(item.id);await loadTodayMeals();renderMeals();}
+      else parsed.reply=`"${parsed.item}" 식단 기록을 찾지 못했어요.`;
+    } else if(parsed.type==="exercise_cancel"){
+      const item=state.exercises.slice().reverse().find(e=>e.name.includes(parsed.item));
+      if(item){await archivePage(item.id);await loadTodayExercises();renderExercises();renderMeals();}
+      else parsed.reply=`"${parsed.item}" 운동 기록을 찾지 못했어요.`;
     } else if(parsed.type==="meal_add"){
       await createPage(DB.meals,{
-        Name:{title:[{text:{content:parsed.name}}]},
-        Date:{date:{start:state.todayStr}},
-        Time:{rich_text:[{text:{content:now}}]},
-        MealType:{rich_text:[{text:{content:parsed.mealType||"식사"}}]},
-        Kcal:{number:parsed.kcal},Carb:{number:parsed.carb},
-        Protein:{number:parsed.protein},Fat:{number:parsed.fat},
+        Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},
+        Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:parsed.mealType||"식사"}}]},
+        Kcal:{number:parsed.kcal},Carb:{number:parsed.carb},Protein:{number:parsed.protein},Fat:{number:parsed.fat},
       });
-      await loadTodayMeals(); renderMeals();
-      if(parsed.auto_routines) for(const k of parsed.auto_routines) await autoCheckRoutine(k);
+      await loadTodayMeals();renderMeals();
+      if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
       renderRoutine();
     } else if(parsed.type==="exercise_add"){
       await createPage(DB.exercises,{
-        Name:{title:[{text:{content:parsed.name}}]},
-        Date:{date:{start:state.todayStr}},
-        Time:{rich_text:[{text:{content:now}}]},
-        Duration:{number:parsed.duration},
-        KcalBurned:{number:parsed.kcal_burned},
-        Count:{number:parsed.count||0},
+        Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},
+        Time:{rich_text:[{text:{content:now}}]},Duration:{number:parsed.duration},
+        KcalBurned:{number:parsed.kcal_burned},Count:{number:parsed.count||0},
       });
-      await loadTodayExercises(); renderExercises(); renderMeals();
-      if(parsed.auto_routines) for(const k of parsed.auto_routines) await autoCheckRoutine(k);
+      await loadTodayExercises();renderExercises();renderMeals();
+      if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
       renderRoutine();
     } else if(parsed.type==="weight"){
       await saveWeight(parsed.value);
     } else if(parsed.type==="routine"){
       await toggleRoutine(parsed.key);
     }
-  } catch(e){ parsed.reply="오류: "+e.message; }
+  }catch(e){parsed.reply="오류: "+e.message;}
   showLoading(false);
   addMsg("bot",parsed.reply||"처리했습니다!");
 }
 
 function addMsg(role,text){
-  const el=document.createElement("div"); el.className="msg "+role;
+  const el=document.createElement("div");el.className="msg "+role;
   el.innerHTML=`<div class="msg-bubble">${text}</div>`;
   document.getElementById("messages").appendChild(el);
   setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),100);
@@ -706,16 +602,15 @@ function switchTab(i){
   document.querySelectorAll(".tab").forEach((t,j)=>t.classList.toggle("active",i===j));
   document.querySelectorAll(".content").forEach((c,j)=>c.classList.toggle("active",i===j));
   document.getElementById("inputBar").style.display=i===0?"flex":"none";
-  if(i===3) renderHeatmap();
+  if(i===3)renderHeatmap();
 }
-
 function showLoading(v){document.getElementById("loading").classList.toggle("open",v);}
 
 window.addEventListener("DOMContentLoaded",()=>{
   const now=new Date();
   document.getElementById("headerDate").textContent=now.toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric",weekday:"short"});
   document.getElementById("historyDate").value=state.todayStr;
-  addMsg("bot","안녕하세요! 😊\n\n위 예시를 참고해서 말씀해주세요!\n지정 음식 외에도 일반 음식 이름으로 말씀해주시면 추정해서 기록해드려요.");
+  addMsg("bot","안녕하세요! 😊\n\n• 식단/운동 취소: \"밸런스팩 취소\" / \"수영 취소\"\n• 걸음수: \"5000보 걸었어\"\n• 팔굽혀펴기: \"팔굽혀펴기 20개 했어\"");
   loadAll();
 });
 </script>
