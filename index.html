@@ -70,33 +70,31 @@
   .heatmap-dates{display:flex;gap:4px;padding-left:78px;margin-bottom:4px}
   .heatmap-date{width:22px;font-size:8px;color:#bbb;text-align:center}
 
-  /* 목표 대비 진행률 */
-  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-  .goal-item{background:var(--bg);border-radius:14px;padding:14px 12px;text-align:center}
-  .goal-ring{position:relative;width:80px;height:80px;margin:0 auto 8px}
-  .goal-ring svg{transform:rotate(-90deg)}
-  .goal-ring-bg{fill:none;stroke:#ebebeb;stroke-width:8}
-  .goal-ring-fg{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 0.6s ease}
-  .goal-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .goal-ring-pct{font-size:15px;font-weight:700;line-height:1}
-  .goal-ring-label{font-size:9px;color:var(--sub);margin-top:2px}
-  .goal-name{font-size:12px;font-weight:600;color:var(--text)}
-  .goal-detail{font-size:10px;color:var(--sub);margin-top:2px}
-
-  /* 칼로리 큰 링 */
-  .kcal-ring-wrap{display:flex;align-items:center;gap:20px;margin-bottom:4px}
+  /* 칼로리 링 */
+  .kcal-ring-wrap{display:flex;align-items:center;gap:20px;margin-bottom:16px}
   .kcal-ring{position:relative;width:110px;height:110px;flex-shrink:0}
   .kcal-ring svg{transform:rotate(-90deg)}
   .kcal-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .kcal-ring-val{font-size:20px;font-weight:700}
   .kcal-ring-sub{font-size:10px;color:var(--sub)}
   .kcal-info{flex:1}
-  .kcal-info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .kcal-info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
   .kcal-info-label{font-size:12px;color:var(--sub)}
   .kcal-info-val{font-size:13px;font-weight:700}
-  .net-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;margin-top:6px}
+  .net-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;margin-top:4px}
   .net-badge.over{background:#fff0f0;color:var(--red)}
   .net-badge.ok{background:#f0faf5;color:var(--green)}
+
+  /* 탄단지 3개 한 줄 */
+  .macro-row{display:flex;gap:8px}
+  .macro-item{flex:1;background:var(--bg);border-radius:12px;padding:12px 8px;text-align:center}
+  .macro-ring{position:relative;width:60px;height:60px;margin:0 auto 6px}
+  .macro-ring svg{transform:rotate(-90deg)}
+  .macro-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .macro-pct{font-size:13px;font-weight:700;line-height:1}
+  .macro-g{font-size:9px;color:var(--sub);margin-top:1px}
+  .macro-name{font-size:11px;font-weight:600;color:var(--text)}
+  .macro-max{font-size:9px;color:var(--sub);margin-top:2px}
 </style>
 </head>
 <body>
@@ -147,16 +145,14 @@
 </div>
 
 <div class="content" id="tab2">
-  <!-- 목표 대비 현황 -->
   <div class="card">
     <div class="card-label">오늘 목표 달성률</div>
-    <!-- 칼로리 큰 링 -->
     <div class="kcal-ring-wrap">
       <div class="kcal-ring">
         <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle class="goal-ring-bg" cx="55" cy="55" r="46"/>
-          <circle id="kcalRingFg" class="goal-ring-fg" cx="55" cy="55" r="46" stroke="#3b7dd8"
-            stroke-dasharray="289" stroke-dashoffset="289"/>
+          <circle fill="none" stroke="#ebebeb" stroke-width="9" cx="55" cy="55" r="46"/>
+          <circle id="kcalRingFg" fill="none" stroke="#3b7dd8" stroke-width="9" stroke-linecap="round"
+            cx="55" cy="55" r="46" stroke-dasharray="289" stroke-dashoffset="289" style="transition:stroke-dashoffset 0.6s ease"/>
         </svg>
         <div class="kcal-ring-text">
           <div class="kcal-ring-val" id="kcalPct" style="color:#3b7dd8">0%</div>
@@ -173,17 +169,14 @@
           <span class="kcal-info-val" style="color:#2d9a6b" id="kcalOut">0 kcal</span>
         </div>
         <div class="kcal-info-row">
-          <span class="kcal-info-label">목표</span>
+          <span class="kcal-info-label">max</span>
           <span class="kcal-info-val" style="color:#888">2,600 kcal</span>
         </div>
         <div id="netBadge" class="net-badge ok">순 0 kcal</div>
       </div>
     </div>
-
-    <!-- 탄단지 링 -->
-    <div class="goal-grid" id="macroGrid">
-      <!-- JS로 렌더링 -->
-    </div>
+    <!-- 탄단지 3개 한 줄 -->
+    <div class="macro-row" id="macroRow"></div>
   </div>
 
   <div class="card"><div class="card-label">오늘 식사</div><div id="mealList"><div class="empty">기록된 식사가 없어요</div></div></div>
@@ -217,9 +210,7 @@ const DB={
   exercises:"351571b13f2e80be808cf4b10cb26044",
   routines:"351571b13f2e8042bb85f81352b13a61"
 };
-
 const GOALS={kcal:2600,carb:350,protein:150,fat:85};
-
 const PRESETS={
   "밸런스팩":{carb:13,protein:30,fat:7,kcal:291},
   "쉐이크":{carb:10,protein:10,fat:4,kcal:100},
@@ -236,12 +227,10 @@ const PRESETS={
   "목살":{carb:0,protein:34,fat:42,kcal:510},
   "밀크아이스크림":{carb:25,protein:3,fat:7,kcal:180},
 };
-
 const EXERCISE_DB={
   "달리기":11,"수영":10,"계단오르기":8,"자전거":7,"댄스":6,
   "스쿼트":5,"걷기":4,"요가":3,"줄넘기":10,"등산":7,"헬스":5,"팔굽혀펴기":4,
 };
-
 const ROUTINE_ITEMS=[
   {key:"weight",label:"몸무게",type:"record"},
   {key:"shower",label:"냉수샤워",type:"check"},
@@ -252,8 +241,7 @@ const ROUTINE_ITEMS=[
   {key:"salad",label:"저녁샐러드",type:"check",desc:"닭가슴살샐러드 저녁"},
   {key:"exercise",label:"메인운동",type:"check",desc:"계단/수영/댄스"},
 ];
-
-const rn=(n)=>Math.round(n);
+const rn=n=>Math.round(n);
 const today=()=>new Date(new Date().getTime()+9*60*60*1000).toISOString().split("T")[0];
 
 let state={checklist:[],meals:[],exercises:[],routines:{},todayStr:today(),squat_count:0};
@@ -263,8 +251,7 @@ async function nFetch(path,method="GET",body=null){
   const url=PROXY+encodeURIComponent("https://api.notion.com"+path);
   const opts={method,headers:{"Notion-Version":"2022-06-28","Content-Type":"application/json"}};
   if(body)opts.body=JSON.stringify(body);
-  const res=await fetch(url,opts);
-  return res.json();
+  const res=await fetch(url,opts);return res.json();
 }
 async function queryDB(dbId,filter=null){const data=await nFetch("/v1/databases/"+dbId+"/query","POST",filter?{filter}:{});return data.results||[];}
 async function createPage(dbId,props){return nFetch("/v1/pages","POST",{parent:{database_id:dbId},properties:props});}
@@ -273,40 +260,20 @@ async function archivePage(pageId){return nFetch("/v1/pages/"+pageId,"PATCH",{ar
 
 async function loadAll(){
   showLoading(true);
-  try{
-    await Promise.all([loadChecklist(),loadTodayMeals(),loadTodayExercises(),loadTodayRoutine()]);
-    renderAll();renderWeeklyChart();renderWeightChart();
-  }catch(e){addMsg("bot","⚠️ 로딩 오류: "+e.message);}
+  try{await Promise.all([loadChecklist(),loadTodayMeals(),loadTodayExercises(),loadTodayRoutine()]);renderAll();renderWeeklyChart();renderWeightChart();}
+  catch(e){addMsg("bot","⚠️ 로딩 오류: "+e.message);}
   showLoading(false);
 }
-
-async function loadChecklist(){
-  const rows=await queryDB(DB.checklist);
-  state.checklist=rows.map(r=>({id:r.id,text:r.properties.Name?.title?.[0]?.plain_text||"",done:r.properties.Done?.checkbox||false})).filter(i=>i.text);
-}
-async function loadTodayMeals(){
-  const rows=await queryDB(DB.meals,{property:"Date",date:{equals:state.todayStr}});
-  state.meals=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0,carb:r.properties.Carb?.number||0,protein:r.properties.Protein?.number||0,fat:r.properties.Fat?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||""}));
-}
-async function loadTodayExercises(){
-  const rows=await queryDB(DB.exercises,{property:"Date",date:{equals:state.todayStr}});
-  state.exercises=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||"",count:r.properties.Count?.number||0}));
-  state.squat_count=state.exercises.filter(e=>e.name.includes("스쿼트")).reduce((s,e)=>s+(e.count||0),0);
-}
-async function loadTodayRoutine(){
-  const rows=await queryDB(DB.routines,{property:"Date",date:{equals:state.todayStr}});
-  state.routines={};
-  rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)state.routines[key]={id:r.id,done:r.properties.Done?.checkbox||false,value:r.properties.Value?.number||null};});
-}
+async function loadChecklist(){const rows=await queryDB(DB.checklist);state.checklist=rows.map(r=>({id:r.id,text:r.properties.Name?.title?.[0]?.plain_text||"",done:r.properties.Done?.checkbox||false})).filter(i=>i.text);}
+async function loadTodayMeals(){const rows=await queryDB(DB.meals,{property:"Date",date:{equals:state.todayStr}});state.meals=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",kcal:r.properties.Kcal?.number||0,carb:r.properties.Carb?.number||0,protein:r.properties.Protein?.number||0,fat:r.properties.Fat?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||""}));}
+async function loadTodayExercises(){const rows=await queryDB(DB.exercises,{property:"Date",date:{equals:state.todayStr}});state.exercises=rows.map(r=>({id:r.id,name:r.properties.Name?.title?.[0]?.plain_text||"",duration:r.properties.Duration?.number||0,kcal_burned:r.properties.KcalBurned?.number||0,time:r.properties.Time?.rich_text?.[0]?.plain_text||"",count:r.properties.Count?.number||0}));state.squat_count=state.exercises.filter(e=>e.name.includes("스쿼트")).reduce((s,e)=>s+(e.count||0),0);}
+async function loadTodayRoutine(){const rows=await queryDB(DB.routines,{property:"Date",date:{equals:state.todayStr}});state.routines={};rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)state.routines[key]={id:r.id,done:r.properties.Done?.checkbox||false,value:r.properties.Value?.number||null};});}
 
 function renderAll(){renderChecklist();renderMeals();renderExercises();renderRoutine();}
 
 function renderChecklist(){
-  const pending=state.checklist.filter(i=>!i.done);
-  const done=state.checklist.filter(i=>i.done);
-  document.getElementById("pendingList").innerHTML=pending.length
-    ?pending.map(i=>`<div class="check-item"><div class="check-box" onclick="toggleCheck('${i.id}',true)"></div><span class="check-text">${i.text}</span></div>`).join("")
-    :'<div class="empty">할 일이 없어요 🎉</div>';
+  const pending=state.checklist.filter(i=>!i.done);const done=state.checklist.filter(i=>i.done);
+  document.getElementById("pendingList").innerHTML=pending.length?pending.map(i=>`<div class="check-item"><div class="check-box" onclick="toggleCheck('${i.id}',true)"></div><span class="check-text">${i.text}</span></div>`).join(""):'<div class="empty">할 일이 없어요 🎉</div>';
   const dLabel=document.getElementById("doneLabel");const dList=document.getElementById("doneList");
   if(done.length){dLabel.style.display="block";dList.innerHTML=done.map(i=>`<div class="check-item"><div class="check-box done" onclick="toggleCheck('${i.id}',false)"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div><span class="check-text done">${i.text}</span></div>`).join("");}
   else{dLabel.style.display="none";dList.innerHTML="";}
@@ -324,42 +291,41 @@ function renderMeals(){
   const tf=rn(state.meals.reduce((s,m)=>s+m.fat,0));
   const net=tk-tb;
 
-  // 칼로리 큰 링
+  // 칼로리 링
   const kcalPct=Math.min(100,rn(tk/GOALS.kcal*100));
-  const circ=289;
   document.getElementById("kcalPct").textContent=kcalPct+"%";
-  document.getElementById("kcalRingFg").style.strokeDashoffset=circ-(circ*kcalPct/100);
+  document.getElementById("kcalRingFg").style.strokeDashoffset=289-(289*kcalPct/100);
   document.getElementById("kcalIn").textContent=tk.toLocaleString()+" kcal";
   document.getElementById("kcalOut").textContent=tb.toLocaleString()+" kcal";
   const netBadge=document.getElementById("netBadge");
   netBadge.textContent=`순 ${net.toLocaleString()} kcal`;
   netBadge.className="net-badge "+(net>GOALS.kcal?"over":"ok");
 
-  // 탄단지 링
+  // 탄단지 3개 한 줄
   const macros=[
     {name:"탄수화물",val:tc,goal:GOALS.carb,color:"#7c5cbf"},
     {name:"단백질",val:tp,goal:GOALS.protein,color:"#2d9a6b"},
     {name:"지방",val:tf,goal:GOALS.fat,color:"#e07b3a"},
   ];
-  const r46=2*Math.PI*34; // 반지름 34 → 둘레 약 214
-  document.getElementById("macroGrid").innerHTML=macros.map(m=>{
+  const circ=170; // 반지름 27 → 둘레 ≈ 170
+  document.getElementById("macroRow").innerHTML=macros.map(m=>{
     const pct=Math.min(100,rn(m.val/m.goal*100));
-    const circ2=214;
-    const offset=circ2-(circ2*pct/100);
-    return`<div class="goal-item">
-      <div class="goal-ring">
-        <svg width="80" height="80" viewBox="0 0 80 80">
-          <circle class="goal-ring-bg" cx="40" cy="40" r="34"/>
-          <circle class="goal-ring-fg" cx="40" cy="40" r="34" stroke="${m.color}"
-            stroke-dasharray="${circ2}" stroke-dashoffset="${offset}"/>
+    const offset=circ-(circ*pct/100);
+    return`<div class="macro-item">
+      <div class="macro-ring">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle fill="none" stroke="#ebebeb" stroke-width="6" cx="30" cy="30" r="27"/>
+          <circle fill="none" stroke="${m.color}" stroke-width="6" stroke-linecap="round"
+            cx="30" cy="30" r="27" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+            style="transition:stroke-dashoffset 0.5s ease"/>
         </svg>
-        <div class="goal-ring-text">
-          <div class="goal-ring-pct" style="color:${m.color}">${pct}%</div>
-          <div class="goal-ring-label">${m.val}g</div>
+        <div class="macro-ring-text">
+          <div class="macro-pct" style="color:${m.color}">${pct}%</div>
+          <div class="macro-g">${m.val}g</div>
         </div>
       </div>
-      <div class="goal-name">${m.name}</div>
-      <div class="goal-detail">목표 ${m.goal}g</div>
+      <div class="macro-name">${m.name}</div>
+      <div class="macro-max">max ${m.goal}g</div>
     </div>`;
   }).join("");
 }
@@ -397,15 +363,10 @@ async function renderHeatmap(){
   const days=[];
   for(let i=9;i>=0;i--){const d=new Date(new Date().getTime()+9*60*60*1000);d.setDate(d.getDate()-i);const ds=d.toISOString().split("T")[0];days.push(ds);}
   const allData={};
-  for(const ds of days){
-    const rows=await queryDB(DB.routines,{property:"Date",date:{equals:ds}});
-    allData[ds]={};
-    rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)allData[ds][key]=r.properties.Done?.checkbox||false;});
-  }
+  for(const ds of days){const rows=await queryDB(DB.routines,{property:"Date",date:{equals:ds}});allData[ds]={};rows.forEach(r=>{const key=r.properties.Key?.rich_text?.[0]?.plain_text;if(key)allData[ds][key]=r.properties.Done?.checkbox||false;});}
   const checkItems=ROUTINE_ITEMS.filter(i=>i.type!=="record");
   const dateLabels=days.map(ds=>{const d=new Date(ds);return`${d.getMonth()+1}/${d.getDate()}`;});
-  let html=`<div style="overflow-x:auto;padding-bottom:4px">
-    <div class="heatmap-dates">${dateLabels.map(l=>`<div class="heatmap-date">${l}</div>`).join("")}</div>`;
+  let html=`<div style="overflow-x:auto;padding-bottom:4px"><div class="heatmap-dates">${dateLabels.map(l=>`<div class="heatmap-date">${l}</div>`).join("")}</div>`;
   checkItems.forEach(item=>{
     html+=`<div class="heatmap-row"><div class="heatmap-label">${item.label}</div><div class="heatmap-dots">`;
     days.forEach(ds=>{html+=`<div class="heatmap-dot ${allData[ds]?.[item.key]?'on':''}"></div>`;});
@@ -445,18 +406,8 @@ async function toggleRoutine(key){
   const rt=state.routines[key];const newDone=!(rt?.done);
   if(rt?.id){await updatePage(rt.id,{Done:{checkbox:newDone}});state.routines[key].done=newDone;}
   else{const page=await createPage(DB.routines,{Name:{title:[{text:{content:key}}]},Key:{rich_text:[{text:{content:key}}]},Date:{date:{start:state.todayStr}},Done:{checkbox:true}});state.routines[key]={id:page.id,done:true};}
-  if(key==="salad"&&newDone){
-    const p=PRESETS["닭가슴살샐러드"];const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-    await createPage(DB.meals,{Name:{title:[{text:{content:"닭가슴살샐러드"}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:"저녁"}}]},Kcal:{number:p.kcal},Carb:{number:p.carb},Protein:{number:p.protein},Fat:{number:p.fat}});
-    await loadTodayMeals();renderMeals();
-    addMsg("bot","저녁샐러드 체크! 식단에도 닭가슴살샐러드 390kcal 기록했어요 😊");
-  }
-  if(key==="breakfast"&&newDone){
-    const p=PRESETS["밸런스팩"];const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-    await createPage(DB.meals,{Name:{title:[{text:{content:"밸런스팩"}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:"아침"}}]},Kcal:{number:p.kcal},Carb:{number:p.carb},Protein:{number:p.protein},Fat:{number:p.fat}});
-    await loadTodayMeals();renderMeals();
-    addMsg("bot","아침 밸런스팩 체크! 식단에도 291kcal 기록했어요 😊");
-  }
+  if(key==="salad"&&newDone){const p=PRESETS["닭가슴살샐러드"];const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});await createPage(DB.meals,{Name:{title:[{text:{content:"닭가슴살샐러드"}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:"저녁"}}]},Kcal:{number:p.kcal},Carb:{number:p.carb},Protein:{number:p.protein},Fat:{number:p.fat}});await loadTodayMeals();renderMeals();addMsg("bot","저녁샐러드 체크! 식단에도 닭가슴살샐러드 390kcal 기록했어요 😊");}
+  if(key==="breakfast"&&newDone){const p=PRESETS["밸런스팩"];const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});await createPage(DB.meals,{Name:{title:[{text:{content:"밸런스팩"}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:"아침"}}]},Kcal:{number:p.kcal},Carb:{number:p.carb},Protein:{number:p.protein},Fat:{number:p.fat}});await loadTodayMeals();renderMeals();addMsg("bot","아침 밸런스팩 체크! 식단에도 291kcal 기록했어요 😊");}
   renderRoutine();
 }
 
@@ -516,53 +467,18 @@ async function loadHistory(){
 function parseMessage(text){
   const t=text.trim();
   const now=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-  if(/취소/.test(t)&&!/운동|걷기|달리기|수영|스쿼트|계단|댄스|팔굽|헬스|요가/.test(t)){
-    const kw=t.replace(/취소|해줘|해/g,"").trim();
-    return{type:"meal_cancel",item:kw,reply:`🗑️ "${kw}" 식단 기록을 삭제했습니다!`};
-  }
-  if(/취소/.test(t)&&/운동|걷기|달리기|수영|스쿼트|계단|댄스|팔굽|헬스|요가/.test(t)){
-    const kw=t.replace(/취소|해줘|해/g,"").trim();
-    return{type:"exercise_cancel",item:kw,reply:`🗑️ "${kw}" 운동 기록을 삭제했습니다!`};
-  }
-  if(/추가/.test(t)&&!/먹었|운동|했어|수영|스쿼트|달리기|계단|댄스|팔굽/.test(t)){
-    const item=t.replace(/추가|해줘|해주세요|체크리스트|에|를|을/g,"").trim();
-    if(item)return{type:"checklist_add",item,reply:`✅ "${item}" 추가했습니다!`};
-  }
-  if(/삭제|지워|빼/.test(t)){
-    const kw=t.replace(/삭제|지워|빼|줘|해/g,"").trim();
-    return{type:"checklist_delete",item:kw,reply:`🗑️ "${kw}" 삭제했습니다!`};
-  }
-  if(/완료|체크/.test(t)&&!/밸런스팩|쉐이크|샐러드|먹었|운동|달리기|수영|스쿼트|계단|댄스|샤워|묵상|팔굽/.test(t)){
-    const kw=t.replace(/완료|체크|했어|해|줘/g,"").trim();
-    return{type:"checklist_done",item:kw,reply:`✅ "${kw}" 완료 처리했습니다!`};
-  }
+  if(/취소/.test(t)&&!/운동|걷기|달리기|수영|스쿼트|계단|댄스|팔굽|헬스|요가/.test(t)){const kw=t.replace(/취소|해줘|해/g,"").trim();return{type:"meal_cancel",item:kw,reply:`🗑️ "${kw}" 식단 기록을 삭제했습니다!`};}
+  if(/취소/.test(t)&&/운동|걷기|달리기|수영|스쿼트|계단|댄스|팔굽|헬스|요가/.test(t)){const kw=t.replace(/취소|해줘|해/g,"").trim();return{type:"exercise_cancel",item:kw,reply:`🗑️ "${kw}" 운동 기록을 삭제했습니다!`};}
+  if(/추가/.test(t)&&!/먹었|운동|했어|수영|스쿼트|달리기|계단|댄스|팔굽/.test(t)){const item=t.replace(/추가|해줘|해주세요|체크리스트|에|를|을/g,"").trim();if(item)return{type:"checklist_add",item,reply:`✅ "${item}" 추가했습니다!`};}
+  if(/삭제|지워|빼/.test(t)){const kw=t.replace(/삭제|지워|빼|줘|해/g,"").trim();return{type:"checklist_delete",item:kw,reply:`🗑️ "${kw}" 삭제했습니다!`};}
+  if(/완료|체크/.test(t)&&!/밸런스팩|쉐이크|샐러드|먹었|운동|달리기|수영|스쿼트|계단|댄스|샤워|묵상|팔굽/.test(t)){const kw=t.replace(/완료|체크|했어|해|줘/g,"").trim();return{type:"checklist_done",item:kw,reply:`✅ "${kw}" 완료 처리했습니다!`};}
   if(/먹었|마셨|섭취|먹음/.test(t)){
-    if(/일반식/.test(t)){
-      const match=t.match(/([\d.]+)\s*인분/);const portions=match?parseFloat(match[1]):1;
-      const base=PRESETS["일반식"];
-      const data={carb:rn(base.carb*portions),protein:rn(base.protein*portions),fat:rn(base.fat*portions),kcal:rn(base.kcal*portions)};
-      const name=portions===1?"일반식":`일반식 ${portions}인분`;
-      const mealType=/아침/.test(t)?"아침":/점심/.test(t)?"점심":/저녁/.test(t)?"저녁":"식사";
-      return{type:"meal_add",name,...data,time:now,mealType,auto_routines:[],reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
-    }
-    for(const[name,data]of Object.entries(PRESETS)){
-      if(t.includes(name)){
-        const mealType=/아침/.test(t)?"아침":/점심/.test(t)?"점심":/저녁/.test(t)?"저녁":"식사";
-        const autoR=[];
-        if(name.includes("밸런스팩")&&/아침/.test(t))autoR.push("breakfast");
-        if((name.includes("닭가슴살샐러드")||name.includes("닭가슴살 샐러드"))&&/저녁/.test(t))autoR.push("salad");
-        if(name.includes("쉐이크"))autoR.push("onlyshake");
-        return{type:"meal_add",name,...data,time:now,mealType,auto_routines:autoR,reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};
-      }
-    }
+    if(/일반식/.test(t)){const match=t.match(/([\d.]+)\s*인분/);const portions=match?parseFloat(match[1]):1;const base=PRESETS["일반식"];const data={carb:rn(base.carb*portions),protein:rn(base.protein*portions),fat:rn(base.fat*portions),kcal:rn(base.kcal*portions)};const name=portions===1?"일반식":`일반식 ${portions}인분`;const mealType=/아침/.test(t)?"아침":/점심/.test(t)?"점심":/저녁/.test(t)?"저녁":"식사";return{type:"meal_add",name,...data,time:now,mealType,auto_routines:[],reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};}
+    for(const[name,data]of Object.entries(PRESETS)){if(t.includes(name)){const mealType=/아침/.test(t)?"아침":/점심/.test(t)?"점심":/저녁/.test(t)?"저녁":"식사";const autoR=[];if(name.includes("밸런스팩")&&/아침/.test(t))autoR.push("breakfast");if((name.includes("닭가슴살샐러드")||name.includes("닭가슴살 샐러드"))&&/저녁/.test(t))autoR.push("salad");if(name.includes("쉐이크"))autoR.push("onlyshake");return{type:"meal_add",name,...data,time:now,mealType,auto_routines:autoR,reply:`🍽️ ${name} 기록! ${data.kcal}kcal (탄${data.carb}g 단${data.protein}g 지${data.fat}g)`};}}
     const foodName=t.replace(/먹었|마셨|섭취|먹음|어|요|을|를|아침에|점심에|저녁에|간식으로/g,"").trim()||"음식";
     return{type:"meal_add",name:foodName,carb:30,protein:10,fat:5,kcal:200,time:now,mealType:"식사",auto_routines:[],reply:`🍽️ ${foodName} 기록했습니다! (영양소는 추정값이에요)`};
   }
-  if(/보/.test(t)&&/걸었|걸음/.test(t)){
-    const match=t.match(/(\d+)\s*보/);const steps=match?parseInt(match[1]):0;
-    const kcal=rn(steps*0.04);
-    return{type:"exercise_add",name:"걷기",duration:rn(steps/100),kcal_burned:kcal,count:steps,time:now,auto_routines:[],reply:`🚶 ${steps.toLocaleString()}보 기록! 약 ${kcal}kcal 소모`};
-  }
+  if(/보/.test(t)&&/걸었|걸음/.test(t)){const match=t.match(/(\d+)\s*보/);const steps=match?parseInt(match[1]):0;const kcal=rn(steps*0.04);return{type:"exercise_add",name:"걷기",duration:rn(steps/100),kcal_burned:kcal,count:steps,time:now,auto_routines:[],reply:`🚶 ${steps.toLocaleString()}보 기록! 약 ${kcal}kcal 소모`};}
   if(/했어|했음|완료/.test(t)&&/달리기|수영|계단|댄스|스쿼트|운동|걷기|자전거|줄넘기|등산|헬스|요가|팔굽/.test(t)){
     const minMatch=t.match(/(\d+)\s*분/);const duration=minMatch?parseInt(minMatch[1]):0;
     const countMatch=t.match(/(\d+)\s*개/);const count=countMatch?parseInt(countMatch[1]):0;
@@ -591,39 +507,18 @@ async function sendMessage(){
   showLoading(true);
   try{
     const now=parsed.time||new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
-    if(parsed.type==="checklist_add"){
-      const page=await createPage(DB.checklist,{Name:{title:[{text:{content:parsed.item}}]},Done:{checkbox:false}});
-      state.checklist.push({id:page.id,text:parsed.item,done:false});renderChecklist();
-    }else if(parsed.type==="checklist_done"){
-      const item=state.checklist.find(i=>!i.done&&i.text.includes(parsed.item));
-      if(item)await toggleCheck(item.id,true);else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
-    }else if(parsed.type==="checklist_delete"){
-      const item=state.checklist.find(i=>i.text.includes(parsed.item));
-      if(item){await archivePage(item.id);await loadChecklist();renderChecklist();}
-      else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;
-    }else if(parsed.type==="meal_cancel"){
-      const item=state.meals.slice().reverse().find(m=>m.name.includes(parsed.item));
-      if(item){await archivePage(item.id);await loadTodayMeals();renderMeals();}
-      else parsed.reply=`"${parsed.item}" 식단 기록을 찾지 못했어요.`;
-    }else if(parsed.type==="exercise_cancel"){
-      const item=state.exercises.slice().reverse().find(e=>e.name.includes(parsed.item));
-      if(item){await archivePage(item.id);await loadTodayExercises();renderExercises();renderMeals();}
-      else parsed.reply=`"${parsed.item}" 운동 기록을 찾지 못했어요.`;
-    }else if(parsed.type==="meal_add"){
-      await createPage(DB.meals,{
-        Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},
-        Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:parsed.mealType||"식사"}}]},
-        Kcal:{number:parsed.kcal},Carb:{number:parsed.carb},Protein:{number:parsed.protein},Fat:{number:parsed.fat},
-      });
+    if(parsed.type==="checklist_add"){const page=await createPage(DB.checklist,{Name:{title:[{text:{content:parsed.item}}]},Done:{checkbox:false}});state.checklist.push({id:page.id,text:parsed.item,done:false});renderChecklist();}
+    else if(parsed.type==="checklist_done"){const item=state.checklist.find(i=>!i.done&&i.text.includes(parsed.item));if(item)await toggleCheck(item.id,true);else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;}
+    else if(parsed.type==="checklist_delete"){const item=state.checklist.find(i=>i.text.includes(parsed.item));if(item){await archivePage(item.id);await loadChecklist();renderChecklist();}else parsed.reply=`"${parsed.item}" 항목을 찾지 못했어요.`;}
+    else if(parsed.type==="meal_cancel"){const item=state.meals.slice().reverse().find(m=>m.name.includes(parsed.item));if(item){await archivePage(item.id);await loadTodayMeals();renderMeals();}else parsed.reply=`"${parsed.item}" 식단 기록을 찾지 못했어요.`;}
+    else if(parsed.type==="exercise_cancel"){const item=state.exercises.slice().reverse().find(e=>e.name.includes(parsed.item));if(item){await archivePage(item.id);await loadTodayExercises();renderExercises();renderMeals();}else parsed.reply=`"${parsed.item}" 운동 기록을 찾지 못했어요.`;}
+    else if(parsed.type==="meal_add"){
+      await createPage(DB.meals,{Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},MealType:{rich_text:[{text:{content:parsed.mealType||"식사"}}]},Kcal:{number:parsed.kcal},Carb:{number:parsed.carb},Protein:{number:parsed.protein},Fat:{number:parsed.fat}});
       await loadTodayMeals();renderMeals();
       if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
       renderRoutine();
     }else if(parsed.type==="exercise_add"){
-      await createPage(DB.exercises,{
-        Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},
-        Time:{rich_text:[{text:{content:now}}]},Duration:{number:parsed.duration},
-        KcalBurned:{number:parsed.kcal_burned},Count:{number:parsed.count||0},
-      });
+      await createPage(DB.exercises,{Name:{title:[{text:{content:parsed.name}}]},Date:{date:{start:state.todayStr}},Time:{rich_text:[{text:{content:now}}]},Duration:{number:parsed.duration},KcalBurned:{number:parsed.kcal_burned},Count:{number:parsed.count||0}});
       await loadTodayExercises();renderExercises();renderMeals();
       if(parsed.auto_routines)for(const k of parsed.auto_routines)await autoCheckRoutine(k);
       renderRoutine();
